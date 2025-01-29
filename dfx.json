@@ -1,0 +1,17 @@
+{
+  "canisters": {
+    "ic-lightclient-backend": {
+      "candid": "src/ic-lightclient-backend/ic-lightclient-backend.did",
+      "package": "ic-lightclient-backend",
+      "type": "rust"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
