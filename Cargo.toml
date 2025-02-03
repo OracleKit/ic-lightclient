@@ -1,5 +1,6 @@
 [workspace]
 members = [
-    "src/ic-lightclient-backend"
+    "src/oc-agent",
+    "src/canister"
 ]
 resolver = "2"

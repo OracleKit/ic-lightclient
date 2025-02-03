@@ -1,8 +1,8 @@
 {
   "canisters": {
-    "ic-lightclient-backend": {
-      "candid": "src/ic-lightclient-backend/ic-lightclient-backend.did",
-      "package": "ic-lightclient-backend",
+    "canister": {
+      "candid": "src/canister/canister.did",
+      "package": "canister",
       "type": "rust"
     }
   },
