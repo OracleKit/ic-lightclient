@@ -2,7 +2,7 @@
   "canisters": {
     "canister": {
       "candid": "src/canister/canister.did",
-      "package": "canister",
+      "package": "ic-lightclient-canister",
       "type": "rust"
     }
   },

@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "src/oc-agent",
-    "src/canister"
+    "src/canister",
+    "src/types"
 ]
 resolver = "2"
