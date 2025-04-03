@@ -1,6 +1,14 @@
+use ic_lightclient_types::{CanisterState, CanisterUpdates};
+
+mod chain;
+
 #[ic_cdk::query]
-fn greet(name: String) -> String {
-    format!("Hello, {}!", name)
+fn get_state() -> CanisterState {
+    CanisterState::default()
+}
+
+#[ic_cdk::update]
+fn update_state(updates: CanisterUpdates) {
 }
 
 ic_cdk::export_candid!();

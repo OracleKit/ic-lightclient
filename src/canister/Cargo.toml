@@ -12,3 +12,6 @@ crate-type = ["cdylib"]
 candid = "0.10"
 ic-cdk = "0.13"
 ic-cdk-timers = "0.7" # Feel free to remove this dependency if you don't need timers
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+ic-lightclient-types = { path = "../types" }
