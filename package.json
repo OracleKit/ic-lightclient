@@ -2,6 +2,7 @@
   "name": "ic-lightclient",
   "version": "1.0.0",
   "scripts": {
+    "build:canister": "bash scripts/build/canister.bash",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
