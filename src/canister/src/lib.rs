@@ -1,6 +1,9 @@
-use ic_lightclient_types::{CanisterState, CanisterUpdates};
-
 mod chain;
+mod ethereum;
+mod state;
+
+use ic_lightclient_types::{CanisterState, CanisterUpdates};
+pub use crate::chain::ChainInterface;
 
 #[ic_cdk::query]
 fn get_state() -> CanisterState {
