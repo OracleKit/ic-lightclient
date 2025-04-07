@@ -2,6 +2,7 @@
 members = [
     "src/oc-agent",
     "src/canister",
-    "src/types"
+    "src/types",
+    "src/ethereum"
 ]
 resolver = "2"
