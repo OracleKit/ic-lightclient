@@ -996,6 +996,7 @@ dependencies = [
  "sha2",
  "ssz_types",
  "superstruct",
+ "thiserror 2.0.12",
  "tree_hash",
  "tree_hash_derive",
  "typenum",

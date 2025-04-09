@@ -1,4 +1,9 @@
-mod types;
+pub mod types;
+pub mod spec;
+pub mod proof;
+pub mod utils;
+pub mod consensus;
+pub mod errors;
 
 pub struct EthereumConsensus;
 

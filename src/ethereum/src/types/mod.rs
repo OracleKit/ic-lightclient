@@ -4,6 +4,8 @@ use ssz_derive::{Decode, Encode};
 use tree_hash_derive::TreeHash;
 use ssz_types::{FixedVector, BitVector};
 
+use crate::spec::ConsensusSpec;
+
 use self::{
     bytes::{ByteList, ByteVector},
     bls::{PublicKey, Signature}
@@ -11,19 +13,19 @@ use self::{
 
 mod serde_utils;
 mod bytes;
-mod bls;
+pub mod bls;
 
 pub type LogsBloom = ByteVector<typenum::U256>;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct LightClientStore {
+pub struct LightClientStore<S: ConsensusSpec> {
     pub finalized_header: LightClientHeader,
-    pub current_sync_committee: SyncCommittee,
-    pub next_sync_committee: Option<SyncCommittee>,
+    pub current_sync_committee: SyncCommittee<S>,
+    pub next_sync_committee: Option<SyncCommittee<S>>,
     pub optimistic_header: LightClientHeader,
     pub previous_max_active_participants: u64,
     pub current_max_active_participants: u64,
-    pub best_valid_update: Option<GenericUpdate>,
+    pub best_valid_update: Option<GenericUpdate<S>>,  
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Encode, Decode, TreeHash, Clone, PartialEq)]
@@ -66,38 +68,38 @@ pub struct ExecutionPayloadHeader {
 }
 
 #[derive(Deserialize, Debug, Decode)]
-pub struct Bootstrap {
+pub struct Bootstrap<S: ConsensusSpec> {
     pub header: LightClientHeader,
-    pub current_sync_committee: SyncCommittee,
+    pub current_sync_committee: SyncCommittee<S>,
     pub current_sync_committee_branch: FixedVector<B256, typenum::U6> // assuming Electra
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Decode)]
-pub struct Update {
+pub struct Update<S: ConsensusSpec> {
     pub attested_header: LightClientHeader,
-    pub next_sync_committee: SyncCommittee,
+    pub next_sync_committee: SyncCommittee<S>,
     pub next_sync_committee_branch: FixedVector<B256, typenum::U6>,
     pub finalized_header: LightClientHeader,
     pub finality_branch: FixedVector<B256, typenum::U7>,
-    pub sync_aggregate: SyncAggregate,
+    pub sync_aggregate: SyncAggregate<S>,
     #[serde(with = "serde_utils::u64")]
     pub signature_slot: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Decode)]
-pub struct FinalityUpdate {
+pub struct FinalityUpdate<S: ConsensusSpec> {
     pub attested_header: LightClientHeader,
     pub finalized_header: LightClientHeader,
     pub finality_branch: FixedVector<B256, typenum::U7>,
-    pub sync_aggregate: SyncAggregate,
+    pub sync_aggregate: SyncAggregate<S>,
     #[serde(with = "serde_utils::u64")]
     pub signature_slot: u64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Decode)]
-pub struct OptimisticUpdate {
+pub struct OptimisticUpdate<S: ConsensusSpec> {
     pub attested_header: LightClientHeader,
-    pub sync_aggregate: SyncAggregate,
+    pub sync_aggregate: SyncAggregate<S>,
     #[serde(with = "serde_utils::u64")]
     pub signature_slot: u64,
 }
@@ -110,14 +112,14 @@ pub struct LightClientHeader {
 }
 
 #[derive(Debug, Clone, Default, Encode, TreeHash, Serialize, Deserialize, Decode, PartialEq)]
-pub struct SyncCommittee {
-    pub pubkeys: FixedVector<PublicKey, typenum::U512>,
+pub struct SyncCommittee<S: ConsensusSpec> {
+    pub pubkeys: FixedVector<PublicKey, S::SyncCommitteeSize>,
     pub aggregate_pubkey: PublicKey,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, Encode, Decode, TreeHash)]
-pub struct SyncAggregate {
-    pub sync_committee_bits: BitVector<typenum::U512>,
+pub struct SyncAggregate<S: ConsensusSpec> {
+    pub sync_committee_bits: BitVector<S::SyncCommitteeSize>,
     pub sync_committee_signature: Signature,
 }
 
@@ -138,18 +140,18 @@ pub struct Fork {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
-pub struct GenericUpdate {
+pub struct GenericUpdate<S: ConsensusSpec> {
     pub attested_header: LightClientHeader,
-    pub sync_aggregate: SyncAggregate,
+    pub sync_aggregate: SyncAggregate<S>,
     pub signature_slot: u64,
-    pub next_sync_committee: Option<SyncCommittee>,
+    pub next_sync_committee: Option<SyncCommittee<S>>,
     pub next_sync_committee_branch: Option<Vec<B256>>,
     pub finalized_header: Option<LightClientHeader>,
     pub finality_branch: Option<Vec<B256>>,
 }
 
-impl From<&Update> for GenericUpdate {
-    fn from(update: &Update) -> Self {
+impl<S: ConsensusSpec> From<&Update<S>> for GenericUpdate<S> {
+    fn from(update: &Update<S>) -> Self {
         Self {
             attested_header: update.attested_header.clone(),
             sync_aggregate: update.sync_aggregate.clone(),
@@ -162,8 +164,8 @@ impl From<&Update> for GenericUpdate {
     }
 }
 
-impl From<&FinalityUpdate> for GenericUpdate {
-    fn from(update: &FinalityUpdate) -> Self {
+impl<S: ConsensusSpec> From<&FinalityUpdate<S>> for GenericUpdate<S> {
+    fn from(update: &FinalityUpdate<S>) -> Self {
         Self {
             attested_header: update.attested_header.clone(),
             sync_aggregate: update.sync_aggregate.clone(),
@@ -176,8 +178,8 @@ impl From<&FinalityUpdate> for GenericUpdate {
     }
 }
 
-impl From<&OptimisticUpdate> for GenericUpdate {
-    fn from(update: &OptimisticUpdate) -> Self {
+impl<S: ConsensusSpec> From<&OptimisticUpdate<S>> for GenericUpdate<S> {
+    fn from(update: &OptimisticUpdate<S>) -> Self {
         Self {
             attested_header: update.attested_header.clone(),
             sync_aggregate: update.sync_aggregate.clone(),
