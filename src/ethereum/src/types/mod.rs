@@ -67,20 +67,20 @@ pub struct ExecutionPayloadHeader {
     pub excess_blob_gas: u64,
 }
 
-#[derive(Deserialize, Debug, Decode)]
+#[derive(Serialize, Deserialize, Debug, Decode)]
 pub struct Bootstrap<S: ConsensusSpec> {
     pub header: LightClientHeader,
     pub current_sync_committee: SyncCommittee<S>,
-    pub current_sync_committee_branch: FixedVector<B256, typenum::U6> // assuming Electra
+    pub current_sync_committee_branch: FixedVector<B256, typenum::U5> // assuming Deneb
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Decode)]
 pub struct Update<S: ConsensusSpec> {
     pub attested_header: LightClientHeader,
     pub next_sync_committee: SyncCommittee<S>,
-    pub next_sync_committee_branch: FixedVector<B256, typenum::U6>,
+    pub next_sync_committee_branch: FixedVector<B256, typenum::U5>,
     pub finalized_header: LightClientHeader,
-    pub finality_branch: FixedVector<B256, typenum::U7>,
+    pub finality_branch: FixedVector<B256, typenum::U6>,
     pub sync_aggregate: SyncAggregate<S>,
     #[serde(with = "serde_utils::u64")]
     pub signature_slot: u64,
@@ -90,7 +90,7 @@ pub struct Update<S: ConsensusSpec> {
 pub struct FinalityUpdate<S: ConsensusSpec> {
     pub attested_header: LightClientHeader,
     pub finalized_header: LightClientHeader,
-    pub finality_branch: FixedVector<B256, typenum::U7>,
+    pub finality_branch: FixedVector<B256, typenum::U6>,
     pub sync_aggregate: SyncAggregate<S>,
     #[serde(with = "serde_utils::u64")]
     pub signature_slot: u64,
