@@ -5,18 +5,18 @@ use eyre::Result;
 use ssz_types::BitVector;
 use tree_hash::TreeHash;
 
-use crate::spec::ConsensusSpec;
-use crate::errors::ConsensusError;
-use crate::proof::{
+use crate::helios::spec::ConsensusSpec;
+use crate::helios::errors::ConsensusError;
+use crate::helios::proof::{
     is_current_committee_proof_valid, is_execution_payload_proof_valid, is_finality_proof_valid,
     is_next_committee_proof_valid,
 };
-use crate::types::bls::{PublicKey, Signature};
-use crate::types::{
-    BeaconBlockHeader, Bootstrap, ExecutionPayloadHeader, FinalityUpdate, Forks, GenericUpdate,
+use crate::helios::types::bls::{PublicKey, Signature};
+use crate::helios::types::{
+    BeaconBlockHeader, Bootstrap, FinalityUpdate, Forks, GenericUpdate,
     LightClientHeader, LightClientStore, OptimisticUpdate, Update,
 };
-use crate::utils::{
+use crate::helios::utils::{
     calculate_fork_version, compute_committee_sign_root, compute_fork_data_root,
     get_participating_keys,
 };
@@ -340,7 +340,7 @@ pub fn verify_generic_update<S: ConsensusSpec>(
     let fork_version = calculate_fork_version::<S>(forks, update.signature_slot.saturating_sub(1));
     let fork_data_root = compute_fork_data_root(fork_version, genesis_root);
     let is_valid_sig = verify_sync_committee_signature(
-        &pks,
+        pks.as_slice(),
         &update.attested_header.beacon,
         &update.sync_aggregate.sync_committee_signature,
         fork_data_root,
@@ -492,7 +492,7 @@ fn safety_threshold<S: ConsensusSpec>(store: &LightClientStore<S>) -> u64 {
     ) / 2
 }
 
-fn is_valid_header<S: ConsensusSpec>(header: &LightClientHeader, forks: &Forks) -> bool {
+fn is_valid_header<S: ConsensusSpec>(header: &LightClientHeader, _: &Forks) -> bool {
     let execution = &header.execution;
     let execution_branch = &header.execution_branch;
 

@@ -4,7 +4,7 @@ use ssz_types::{BitVector, FixedVector};
 use tree_hash::TreeHash;
 use tree_hash_derive::TreeHash;
 
-use crate::{
+use crate::helios::{
     spec::ConsensusSpec,
     types::{bls::PublicKey, Forks, SyncCommittee},
 };

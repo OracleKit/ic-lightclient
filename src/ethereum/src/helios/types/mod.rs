@@ -4,7 +4,7 @@ use ssz_derive::{Decode, Encode};
 use tree_hash_derive::TreeHash;
 use ssz_types::{FixedVector, BitVector};
 
-use crate::spec::ConsensusSpec;
+use crate::helios::spec::ConsensusSpec;
 
 use self::{
     bytes::{ByteList, ByteVector},

@@ -2,7 +2,7 @@ use alloy_primitives::B256;
 use sha2::{Digest, Sha256};
 use tree_hash::TreeHash;
 
-use crate::{
+use crate::helios::{
     spec::ConsensusSpec,
     types::{BeaconBlockHeader, ExecutionPayloadHeader, Forks, SyncCommittee},
 };
