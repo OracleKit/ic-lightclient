@@ -5,12 +5,12 @@ edition = "2021"
 
 [dependencies]
 getrandom = { version = "0.2.15", features = ["custom"] }
-ethereum_ssz = "0.8.3"
-ethereum_ssz_derive = "0.8.3"
-ssz_types = "0.10.1"
-tree_hash = "0.9.1"
-tree_hash_derive = "0.9.1"
-alloy-primitives = { version = "0.8.0", features = ["serde"] }
+ethereum_ssz = "0.9.0"
+ethereum_ssz_derive = "0.9.0"
+ssz_types = "0.11.0"
+tree_hash = "0.10.0"
+tree_hash_derive = "0.10.0"
+alloy-primitives = { version = "1.0.0", features = ["serde"] }
 eyre = "0.6.12"
 serde = "1.0.219"
 superstruct = "0.8.0"
@@ -20,3 +20,4 @@ ic_bls12_381 = { version = "0.10.0", default-features = false, features = ["grou
 thiserror = "2.0.12"
 alloy-rpc-types-eth = "0.14.0"
 alloy-consensus = "0.14.0"
+bincode = "2.0.1"
