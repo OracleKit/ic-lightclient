@@ -7,3 +7,6 @@ edition = "2021"
 tokio = { version = "1.44.2", features = ["full"] }
 ic-agent = "0.40.0"
 ic-lightclient-types = { path = "../types" }
+serde = { version = "1.0.219", features = ["derive"] }
+toml = "0.8.20"
+alloy-primitives = { version = "1.0.0", features = ["serde"] }
