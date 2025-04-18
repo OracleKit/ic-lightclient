@@ -1966,6 +1966,7 @@ dependencies = [
  "alloy-primitives",
  "alloy-rpc-types-eth",
  "ic-agent",
+ "ic-lightclient-ethereum",
  "ic-lightclient-types",
  "ic-utils",
  "reqwest",

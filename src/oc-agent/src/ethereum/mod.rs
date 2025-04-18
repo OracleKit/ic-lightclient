@@ -1,6 +1,6 @@
 mod api;
 
-use api::ExecutionApi;
+use api::{ConsensusApi, ExecutionApi};
 use ic_lightclient_types::{ChainState, ChainUpdates};
 use crate::{chain::Chain, config::EthereumConfig};
 
@@ -11,6 +11,7 @@ impl Chain for EthereumChain {
 
     async fn init(&self, config: EthereumConfig) {
         ExecutionApi::init(config.execution_api.clone());
+        ConsensusApi::init(config.consensus_api.clone());
     }
 
     async fn get_updates(&self, state: ChainState) -> Option<ChainUpdates> {
