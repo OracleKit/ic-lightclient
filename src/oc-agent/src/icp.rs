@@ -20,11 +20,8 @@ impl ICP {
             .with_url(config.agent_url.clone())
             .build()
             .expect("Failed to create agent");
-        
-        let canister_id = Principal::from_text(&config.canister_id)
-            .expect("Invalid canister ID");
 
-        INNER.set(Inner { agent, canister_id }).unwrap();
+        INNER.set(Inner { agent, canister_id: config.canister_id.clone() }).unwrap();
     }
 
     fn canister<'a>() -> Canister<'a> {

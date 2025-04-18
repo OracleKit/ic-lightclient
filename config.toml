@@ -1,1 +1,10 @@
+[icp]
+agent_url="https://icp-api.io"
+canister_id="rwlgt-iiaaa-aaaaa-aaaaa-cai"
 
+[ethereum]
+consensus_api="https://ethereum.operationsolarstorm.org"
+execution_api="https://ethereum-rpc.publicnode.com"
+checkpoint_block_root="00203619f27722af905f1464b6959c2c96f1c8a4fd564e17b61819ba407c518e"
+genesis_validator_root="4b363db94e286120d76eb905340fdd4e54bfe9f06bf33ff6cf5ad27f511bfe95"
+genesis_time=1606824023
