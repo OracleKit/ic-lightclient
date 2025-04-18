@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use alloy_primitives::B256;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct EthereumConfig {
     pub consensus_rpc: String,
     pub execution_rpc: String,
@@ -10,9 +10,16 @@ pub struct EthereumConfig {
     pub genesis_time: u64,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
+pub struct ICPConfig {
+    pub canister_id: String,
+    pub agent_url: String,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct Config {
-    pub ethereum: EthereumConfig
+    pub ethereum: EthereumConfig,
+    pub icp: ICPConfig,
 }
 
 pub fn load_config() -> Config {

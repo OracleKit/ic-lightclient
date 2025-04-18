@@ -13,6 +13,8 @@ use config::load_config;
 #[tokio::main]
 async fn main() {
     let config = load_config();
+    ICP::init(config.icp);
+
     let chain_manager = ChainManager::new();
     chain_manager.ethereum.init(config.ethereum).await;
 

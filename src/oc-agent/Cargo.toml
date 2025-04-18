@@ -10,3 +10,4 @@ ic-lightclient-types = { path = "../types" }
 serde = { version = "1.0.219", features = ["derive"] }
 toml = "0.8.20"
 alloy-primitives = { version = "1.0.0", features = ["serde"] }
+ic-utils = "0.40.0"

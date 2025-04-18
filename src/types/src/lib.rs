@@ -1,14 +1,14 @@
-use serde::{Serialize, Deserialize};
-use candid::CandidType;
+use serde::{Serialize};
+use candid::{CandidType, Deserialize};
 
-#[derive(CandidType, Serialize, Debug, Default)]
+#[derive(CandidType, Serialize, Deserialize, Debug, Default)]
 pub struct ChainState {
     pub version: u64,
     pub state: Vec<u8>,
     pub tasks: Vec<Vec<u8>>
 }
 
-#[derive(CandidType, Serialize, Debug, Default)]
+#[derive(CandidType, Serialize, Deserialize, Debug, Default)]
 pub struct CanisterState {
     pub version: u64,
     pub ethereum: ChainState
