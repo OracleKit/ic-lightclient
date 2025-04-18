@@ -65,7 +65,7 @@ impl ExecutionApi {
         Self::request("eth_blockNumber", ()).await
     }
 
-    pub async fn get_block_header_by_number(
+    pub async fn block_header_by_number(
         block_number: U256,
     ) -> Header {
         Self::request(

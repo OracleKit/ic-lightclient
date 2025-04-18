@@ -2,7 +2,7 @@ use std::sync::OnceLock;
 use alloy_primitives::B256;
 use serde::{de::DeserializeOwned, Deserialize};
 use crate::http::HttpClient;
-use ic_lightclient_ethereum::helios::{spec::MainnetConsensusSpec, types::Bootstrap};
+use ic_lightclient_ethereum::helios::{spec::MainnetConsensusSpec, types::{Bootstrap, Update}};
 
 static INNER: OnceLock<Inner> = OnceLock::new();
 
@@ -40,14 +40,26 @@ impl ConsensusApi {
             .await
             .expect("Failed to send request");
 
-        let response: ResponseWrapper<Response> = response.json().await.expect("Failed to parse response");
-        response.data
+        response.json().await.expect("Failed to parse response")
     }
 
     pub async fn bootstrap(block_root: B256) -> Bootstrap<MainnetConsensusSpec> {
-        Self::request(
+        let response: ResponseWrapper<Bootstrap<MainnetConsensusSpec>> = Self::request(
             &format!("/eth/v1/beacon/light_client/bootstrap/{}", block_root),
             &[]
-        ).await
+        ).await;
+
+        response.data
+    }
+
+    pub async fn updates(start_period: u64, count: u64) -> Vec<Update<MainnetConsensusSpec>> {
+        let response: Vec<ResponseWrapper<Update<MainnetConsensusSpec>>> = Self::request(
+            "/eth/v1/beacon/light_client/updates",
+            &[("start_period", &start_period.to_string()), ("count", &count.to_string())]
+        ).await;
+
+        response.into_iter()
+            .map(|r| r.data)
+            .collect()
     }
 }
