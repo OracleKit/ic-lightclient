@@ -1,4 +1,5 @@
 use ic_agent::export::Principal;
+use ic_lightclient_ethereum::helios::types::Forks;
 use serde::Deserialize;
 use alloy_primitives::B256;
 
@@ -9,6 +10,7 @@ pub struct EthereumConfig {
     pub checkpoint_block_root: B256,
     pub genesis_validator_root: B256,
     pub genesis_time: u64,
+    pub forks: Forks,
 }
 
 #[derive(Deserialize, Debug)]

@@ -2,7 +2,7 @@ use std::sync::OnceLock;
 use alloy_primitives::B256;
 use serde::{de::DeserializeOwned, Deserialize};
 use crate::http::HttpClient;
-use ic_lightclient_ethereum::helios::{spec::MainnetConsensusSpec, types::{Bootstrap, Update}};
+use ic_lightclient_ethereum::helios::{spec::MainnetConsensusSpec, types::{Bootstrap, FinalityUpdate, OptimisticUpdate, Update}};
 
 static INNER: OnceLock<Inner> = OnceLock::new();
 
@@ -61,5 +61,23 @@ impl ConsensusApi {
         response.into_iter()
             .map(|r| r.data)
             .collect()
+    }
+
+    pub async fn optimistic_update() -> OptimisticUpdate<MainnetConsensusSpec> {
+        let response: ResponseWrapper<OptimisticUpdate<MainnetConsensusSpec>> = Self::request(
+            "/eth/v1/beacon/light_client/optimistic_update",
+            &[]
+        ).await;
+
+        response.data
+    }
+
+    pub async fn finality_update() -> FinalityUpdate<MainnetConsensusSpec> {
+        let response: ResponseWrapper<FinalityUpdate<MainnetConsensusSpec>> = Self::request(
+            "/eth/v1/beacon/light_client/finality_update",
+            &[]
+        ).await;
+
+        response.data
     }
 }
