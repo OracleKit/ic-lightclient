@@ -4,3 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+tokio = { version = "1.44.2", features = ["full"] }
+ic-agent = "0.40.0"
+ic-lightclient-types = { path = "../types" }
+serde = { version = "1.0.219", features = ["derive"] }
+toml = "0.8.20"
+alloy-primitives = { version = "1.0.0", features = ["serde"] }
+ic-utils = "0.40.0"
+reqwest = { version = "0.12.15", features = ["json"] }
+alloy-rpc-types-eth = "0.14.0"
+ic-lightclient-ethereum = { path = "../ethereum" }
