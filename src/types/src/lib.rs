@@ -1,4 +1,7 @@
-use serde::{Serialize};
+mod config;
+pub use config::*;
+
+use serde::Serialize;
 use candid::{CandidType, Deserialize};
 
 #[derive(CandidType, Serialize, Deserialize, Debug, Default)]
