@@ -1,6 +1,7 @@
 use crate::ChainInterface;
 use ic_lightclient_types::{ChainState, ChainUpdates};
 
+#[derive(Default)]
 pub struct EthereumChain {
 }
 
