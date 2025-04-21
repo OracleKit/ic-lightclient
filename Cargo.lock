@@ -1934,6 +1934,7 @@ dependencies = [
  "ic-lightclient-types",
  "serde",
  "serde_json",
+ "toml",
 ]
 
 [[package]]
@@ -1980,6 +1981,8 @@ name = "ic-lightclient-types"
 version = "0.1.0"
 dependencies = [
  "candid",
+ "ic-agent",
+ "ic-lightclient-ethereum",
  "serde",
 ]
 

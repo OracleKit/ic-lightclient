@@ -1,7 +1,7 @@
 use ic_agent::{export::Principal, Agent};
 use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use ic_utils::{call::SyncCall, Canister};
-use crate::config::ICPConfig;
+use ic_lightclient_types::ICPConfig;
 use std::sync::OnceLock;
 
 static INNER: OnceLock<Inner> = OnceLock::new();
