@@ -1980,6 +1980,7 @@ dependencies = [
 name = "ic-lightclient-types"
 version = "0.1.0"
 dependencies = [
+ "alloy-primitives",
  "candid",
  "ic-agent",
  "ic-lightclient-ethereum",
