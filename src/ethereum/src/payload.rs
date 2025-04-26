@@ -1,34 +1,49 @@
 use alloy_primitives::B256;
-use alloy_rpc_types_eth::Header;
 use serde::{Deserialize, Serialize};
-use crate::helios::{spec::ConsensusSpec, types::{Bootstrap, LightClientHeader, Update}};
+use crate::helios::{spec::ConsensusSpec, types::{Bootstrap, FinalityUpdate, LightClientHeader, OptimisticUpdate, Update}};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct BootstrapPayload<S: ConsensusSpec> {
-    execution_header: Header,
-    bootstrap: Bootstrap<S>
+    pub bootstrap: Bootstrap<S>
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct UpdatePayload<S: ConsensusSpec> {
-    execution_header: Vec<Header>,
-    update: Update<S>
+    pub update: Update<S>
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
+pub struct OptimisticUpdatePayload<S: ConsensusSpec> {
+    pub update: OptimisticUpdate<S>
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct FinalityUpdatePayload<S: ConsensusSpec> {
+    pub update: FinalityUpdate<S>
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum LightClientUpdatePayload<S: ConsensusSpec> {
+    Bootstrap(BootstrapPayload<S>),
+    Update(UpdatePayload<S>),
+    OptimisticUpdate(OptimisticUpdatePayload<S>),
+    FinalityUpdate(FinalityUpdatePayload<S>)
+}
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct LightClientStateBootstrap {
-    block_hash: B256
+    pub block_hash: B256
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct LightClientStateActive<S: ConsensusSpec> {
-    finalized_header: LightClientHeader,
-    optimistic_header: LightClientHeader,
-    awaiting_challenge: Vec<Update<S>>,
+    pub finalized_header: LightClientHeader,
+    pub optimistic_header: LightClientHeader,
+    pub awaiting_challenge: Vec<LightClientUpdatePayload<S>>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub enum LightClientStatePayload<S: ConsensusSpec> {
-    BOOTSTRAP(LightClientStateBootstrap),
-    ACTIVE(LightClientStateActive<S>)
+    Bootstrap(LightClientStateBootstrap),
+    Active(LightClientStateActive<S>)
 }

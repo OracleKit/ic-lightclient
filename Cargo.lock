@@ -1931,6 +1931,7 @@ dependencies = [
  "enum_dispatch",
  "ic-cdk",
  "ic-cdk-timers",
+ "ic-lightclient-ethereum",
  "ic-lightclient-types",
  "serde",
  "serde_json",

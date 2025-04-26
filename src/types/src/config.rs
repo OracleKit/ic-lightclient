@@ -3,7 +3,7 @@ use alloy_primitives::B256;
 use ic_lightclient_ethereum::helios::types::Forks;
 use ic_agent::export::Principal;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 pub struct EthereumConfig {
     pub consensus_api: String,
     pub execution_api: String,
@@ -19,7 +19,16 @@ pub struct ICPConfig {
     pub agent_url: String,
 }
 
-#[derive(Deserialize, Debug)]
+impl Default for ICPConfig {
+    fn default() -> Self {
+        Self {
+            canister_id: Principal::anonymous(),
+            agent_url: "".to_string(),
+        }
+    }
+}
+
+#[derive(Deserialize, Debug, Default)]
 pub struct Config {
     pub ethereum: EthereumConfig,
     pub icp: ICPConfig,
