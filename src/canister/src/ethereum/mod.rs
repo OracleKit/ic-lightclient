@@ -46,6 +46,8 @@ impl ChainInterface for EthereumChain {
         let updates = updates.updates;
         let config = &self.config.ethereum;
 
+        // TODO: Add timer checks
+
         let updates: Vec<LightClientUpdatePayload<MainnetConsensusSpec>> = updates.into_iter()
             .map(|update| {
                 let update: LightClientUpdatePayload<MainnetConsensusSpec> = serde_json::from_slice(&update)
@@ -53,6 +55,8 @@ impl ChainInterface for EthereumChain {
                 update
             })
             .collect();
+
+        // TODO: Add check for conflicts
 
         for update in self.awaiting_challenge.iter() {
             match update {
