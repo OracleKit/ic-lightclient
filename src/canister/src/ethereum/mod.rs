@@ -23,10 +23,12 @@ impl ChainInterface for EthereumChain {
         } else {
             let optimistic_header = self.store.optimistic_header.clone();
             let finalized_header = self.store.finalized_header.clone();
+            let has_next_sync_committee = self.store.next_sync_committee.is_some();
             let awaiting_challenge = self.awaiting_challenge.clone();
             let state = LightClientStateActive {
                 optimistic_header,
                 finalized_header,
+                has_next_sync_committee,
                 awaiting_challenge,
             };
             let state = serde_json::to_vec(&state).expect("Failed to serialize state");

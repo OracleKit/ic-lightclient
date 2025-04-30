@@ -6,7 +6,7 @@ mod http;
 
 use std::time::Duration;
 use chain::{Chain, ChainManager};
-use ic_lightclient_types::CanisterUpdates;
+use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use tokio::time::sleep;
 use icp::ICP;
 use config::load_config;
@@ -20,7 +20,8 @@ async fn main() {
     chain_manager.ethereum.init(config.ethereum).await;
 
     loop {
-        let state = ICP::get_canister_state().await;
+        // let state = ICP::get_canister_state().await;
+        let state = CanisterState::default();
         let updates = chain_manager.ethereum.get_updates(state.ethereum).await;
 
         if let Some(updates) = updates {

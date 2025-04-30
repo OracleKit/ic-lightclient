@@ -1,4 +1,5 @@
 mod api;
+mod diff;
 
 use std::{sync::{Mutex, OnceLock}, time::SystemTime};
 use alloy_primitives::B256;
@@ -46,6 +47,13 @@ impl Chain for EthereumChain {
     }
 
     async fn get_updates(&self, state: ChainState) -> Option<ChainUpdates> {
+        self.check_and_sync().await;
+        None
+    }
+}
+
+impl EthereumChain {
+    async fn check_and_sync(&self) {
         let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
         let current_time_sec = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
         let genesis_time = self.genesis_time.get().unwrap().clone();
@@ -55,7 +63,7 @@ impl Chain for EthereumChain {
         let last_updated_time_sec = *self.last_updated_time_sec.lock().unwrap();
 
         if current_time_sec - last_updated_time_sec < 12 {
-            return None;
+            return;
         }
 
         let optimistic_slot = store.optimistic_header.beacon.slot;
@@ -85,13 +93,9 @@ impl Chain for EthereumChain {
         if new_optimistic_slot != optimistic_slot {
             let mut last_updated_time_sec = self.last_updated_time_sec.lock().unwrap();
             *last_updated_time_sec = current_time_sec;
-        }
-
-        None
+        } 
     }
-}
 
-impl EthereumChain {
     async fn sync(&self, current_period: u64, mut finalized_period: u64) {
         println!("Syncing...");
         let mut updates: Vec<Update<MainnetConsensusSpec>> = vec![];
@@ -165,7 +169,11 @@ impl EthereumChain {
         let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
         let current_slot = expected_current_slot(current_time_ns.try_into().unwrap(), *genesis_time);
 
-        verify_generic_update(update, current_slot, &store, *genesis_root, forks).unwrap();
-        apply_generic_update(&mut store, update);
+        let result = verify_generic_update(update, current_slot, &store, *genesis_root, forks);
+        if result.is_ok() {
+            apply_generic_update(&mut store, update);
+        } else {
+            println!("Result is err: {:?}", result.err().unwrap());
+        }
     }
 }
