@@ -1,10 +1,9 @@
 use std::rc::Rc;
 
-use crate::ChainInterface;
-use ic_lightclient_ethereum::{helios::{consensus::{apply_bootstrap, apply_finality_update, apply_optimistic_update, apply_update, verify_bootstrap}, spec::MainnetConsensusSpec, types::LightClientStore}, payload::{LightClientStateActive, LightClientStateBootstrap, LightClientUpdatePayload}};
+use crate::{config::ConfigManager, ChainInterface};
+use ic_lightclient_ethereum::{helios::{consensus::{apply_bootstrap, apply_finality_update, apply_optimistic_update, apply_update, verify_bootstrap}, spec::MainnetConsensusSpec, types::LightClientStore}, payload::{LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
 use ic_lightclient_types::{ChainState, ChainUpdates, Config};
 
-#[derive(Default)]
 pub struct EthereumChain {
     is_bootstrapped: bool,
     store: LightClientStore<MainnetConsensusSpec>,
@@ -12,12 +11,23 @@ pub struct EthereumChain {
     config: Rc<Config>
 }
 
+impl Default for EthereumChain {
+    fn default() -> Self {
+        Self {
+            is_bootstrapped: false,
+            store: LightClientStore::<MainnetConsensusSpec>::default(),
+            awaiting_challenge: vec![],
+            config: ConfigManager::get()
+        }
+    }
+}
+
 impl ChainInterface for EthereumChain {
     fn get_state(&self) -> ChainState {
-        let state = if self.is_bootstrapped {
+        let state = if !self.is_bootstrapped {
             let checkpoint_root = self.config.ethereum.checkpoint_block_root.clone();
             let state = LightClientStateBootstrap { block_hash: checkpoint_root };
-            let state = serde_json::to_vec(&state).expect("Failed to serialize state");
+            let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Bootstrap(state)).expect("Failed to serialize state");
             
             state
         } else {
@@ -31,7 +41,7 @@ impl ChainInterface for EthereumChain {
                 has_next_sync_committee,
                 awaiting_challenge,
             };
-            let state = serde_json::to_vec(&state).expect("Failed to serialize state");
+            let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Active(state)).expect("Failed to serialize state");
             
             state
         };

@@ -14,14 +14,13 @@ use config::load_config;
 #[tokio::main]
 async fn main() {
     let config = load_config();
-    ICP::init(config.icp);
+    ICP::init(config.icp).await;
 
     let chain_manager = ChainManager::new();
     chain_manager.ethereum.init(config.ethereum).await;
 
     loop {
-        // let state = ICP::get_canister_state().await;
-        let state = CanisterState::default();
+        let state = ICP::get_canister_state().await;
         let updates = chain_manager.ethereum.get_updates(state.ethereum).await;
 
         if let Some(updates) = updates {

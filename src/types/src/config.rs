@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use alloy_primitives::B256;
 use ic_lightclient_ethereum::helios::types::Forks;
-use ic_agent::export::Principal;
+use ic_principal::Principal;
 
 #[derive(Deserialize, Debug, Default)]
 pub struct EthereumConfig {

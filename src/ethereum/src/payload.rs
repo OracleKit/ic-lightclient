@@ -2,7 +2,7 @@ use alloy_primitives::B256;
 use serde::{Deserialize, Serialize};
 use crate::helios::{spec::ConsensusSpec, types::{Bootstrap, FinalityUpdate, LightClientHeader, OptimisticUpdate, Update}};
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BootstrapPayload<S: ConsensusSpec> {
     pub bootstrap: Bootstrap<S>
 }
@@ -16,7 +16,7 @@ where
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UpdatePayload<S: ConsensusSpec> {
     pub update: Update<S>
 }
@@ -30,7 +30,7 @@ where
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct OptimisticUpdatePayload<S: ConsensusSpec> {
     pub update: OptimisticUpdate<S>
 }
@@ -44,7 +44,7 @@ where
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct FinalityUpdatePayload<S: ConsensusSpec> {
     pub update: FinalityUpdate<S>
 }
@@ -58,7 +58,7 @@ where
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum LightClientUpdatePayload<S: ConsensusSpec> {
     Bootstrap(BootstrapPayload<S>),
     Update(UpdatePayload<S>),
@@ -66,12 +66,12 @@ pub enum LightClientUpdatePayload<S: ConsensusSpec> {
     FinalityUpdate(FinalityUpdatePayload<S>)
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LightClientStateBootstrap {
     pub block_hash: B256
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LightClientStateActive<S: ConsensusSpec> {
     pub finalized_header: LightClientHeader,
     pub optimistic_header: LightClientHeader,
@@ -79,7 +79,7 @@ pub struct LightClientStateActive<S: ConsensusSpec> {
     pub awaiting_challenge: Vec<LightClientUpdatePayload<S>>,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum LightClientStatePayload<S: ConsensusSpec> {
     Bootstrap(LightClientStateBootstrap),
     Active(LightClientStateActive<S>)

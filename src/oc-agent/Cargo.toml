@@ -14,3 +14,4 @@ ic-utils = "0.40.0"
 reqwest = { version = "0.12.15", features = ["json"] }
 alloy-rpc-types-eth = "0.14.0"
 ic-lightclient-ethereum = { path = "../ethereum" }
+serde_json = "1.0.140"

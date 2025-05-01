@@ -1973,6 +1973,7 @@ dependencies = [
  "ic-utils",
  "reqwest",
  "serde",
+ "serde_json",
  "tokio",
  "toml",
 ]
@@ -1983,8 +1984,8 @@ version = "0.1.0"
 dependencies = [
  "alloy-primitives",
  "candid",
- "ic-agent",
  "ic-lightclient-ethereum",
+ "ic_principal",
  "serde",
 ]
 

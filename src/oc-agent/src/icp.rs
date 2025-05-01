@@ -15,12 +15,13 @@ struct Inner {
 pub struct ICP;
 
 impl ICP {
-    pub fn init(config: ICPConfig) {
+    pub async fn init(config: ICPConfig) {
         let agent = Agent::builder()
             .with_url(config.agent_url.clone())
             .build()
             .expect("Failed to create agent");
 
+        agent.fetch_root_key().await.unwrap();
         INNER.set(Inner { agent, canister_id: config.canister_id.clone() }).unwrap();
     }
 

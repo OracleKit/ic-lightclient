@@ -20,8 +20,14 @@ fn get_state() -> CanisterState {
 
 #[ic_cdk::update]
 fn update_state(updates: CanisterUpdates) {
+    let start = ic_cdk::api::performance_counter(0);
+
     let chains = GlobalState::chains();
     chains.borrow_mut().ethereum.update_state(updates.ethereum);
+    
+    let end = ic_cdk::api::performance_counter(0);
+    let cycles = ic_cdk::api::canister_balance();
+    ic_cdk::println!("Instructions: {}, cycles: {}", end - start, cycles);
 }
 
 ic_cdk::export_candid!();

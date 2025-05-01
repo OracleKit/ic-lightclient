@@ -1,6 +1,7 @@
 [icp]
-agent_url="https://icp-api.io"
-canister_id="rwlgt-iiaaa-aaaaa-aaaaa-cai"
+# agent_url="https://icp-api.io"
+agent_url="http://127.0.0.1:4943"
+canister_id="uxrrr-q7777-77774-qaaaq-cai"
 
 [ethereum]
 consensus_api="https://ethereum.operationsolarstorm.org"

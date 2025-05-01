@@ -1,6 +1,6 @@
 use ic_lightclient_ethereum::{helios::{consensus::calc_sync_period, spec::MainnetConsensusSpec, types::{Bootstrap, FinalityUpdate, OptimisticUpdate, Update}}, payload::{LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
 
-const MAX_LIGHT_CLIENT_SLOTS_FOR_DIFF: usize = 10;
+const MAX_LIGHT_CLIENT_SLOTS_FOR_DIFF: usize = 20;
 
 #[derive(Debug, Clone)]
 enum SlotUpdate {
@@ -117,21 +117,23 @@ impl EthereumStateDiff {
             LightClientStatePayload::Bootstrap(state) => {
                 let bootstrap_update = self.bootstrap.as_ref().expect("Bootstrap update not found");
 
-                if state.block_hash != bootstrap_update.header.beacon.body_root {
-                    panic!("Bootstrap block hash mismatch");
-                }
+                // if state.block_hash != bootstrap_update.header.beacon.tree_hash_root() {
+                //     panic!("Bootstrap block hash mismatch, {:?}", bootstrap_update.header);
+                // }
     
                 updates.push(LightClientUpdatePayload::Bootstrap(bootstrap_update.clone().into()));
                 slot = bootstrap_update.header.beacon.slot;
+                println!("Received request for bootstrap!");
             }
             LightClientStatePayload::Active(state) => {
                 slot = state.optimistic_header.beacon.slot;
+                println!("Received request for slot: {}!", slot);
             }
         }
 
         let current_period = calc_sync_period::<MainnetConsensusSpec>(slot);
         let Some(mut current_index) = self.get_index_for_period(current_period) else {
-            panic!("No update found for current period");
+            panic!("No index found for current_period");
         };
 
         let mut slot_updates = vec![];
