@@ -67,7 +67,7 @@ pub struct ExecutionPayloadHeader {
     pub excess_blob_gas: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Decode)]
+#[derive(Serialize, Deserialize, Debug, Decode, Clone)]
 pub struct Bootstrap<S: ConsensusSpec> {
     pub header: LightClientHeader,
     pub current_sync_committee: SyncCommittee<S>,
@@ -96,7 +96,7 @@ pub struct FinalityUpdate<S: ConsensusSpec> {
     pub signature_slot: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Decode)]
+#[derive(Serialize, Deserialize, Debug, Clone, Decode,)]
 pub struct OptimisticUpdate<S: ConsensusSpec> {
     pub attested_header: LightClientHeader,
     pub sync_aggregate: SyncAggregate<S>,

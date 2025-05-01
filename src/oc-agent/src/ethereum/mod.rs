@@ -1,9 +1,11 @@
 mod api;
+mod diff;
 
 use std::{sync::{Mutex, OnceLock}, time::SystemTime};
 use alloy_primitives::B256;
 use api::{ConsensusApi, ExecutionApi};
-use ic_lightclient_ethereum::helios::{consensus::{apply_bootstrap, apply_generic_update, calc_sync_period, expected_current_slot, verify_generic_update}, spec::MainnetConsensusSpec, types::{FinalityUpdate, Forks, GenericUpdate, LightClientStore, OptimisticUpdate, Update}};
+use diff::EthereumStateDiff;
+use ic_lightclient_ethereum::{helios::{consensus::{apply_bootstrap, apply_generic_update, calc_sync_period, expected_current_slot, verify_generic_update}, spec::MainnetConsensusSpec, types::{FinalityUpdate, Forks, GenericUpdate, LightClientStore, OptimisticUpdate, Update}}, payload::LightClientStatePayload};
 use ic_lightclient_types::{ChainState, ChainUpdates};
 use crate::chain::Chain;
 use ic_lightclient_types::EthereumConfig;
@@ -16,6 +18,7 @@ pub struct EthereumChain {
     genesis_validator_root: OnceLock<B256>,
     forks: OnceLock<Forks>,
     last_updated_time_sec: Mutex<u64>,
+    state_differ: Mutex<EthereumStateDiff>,
 }
 
 impl Chain for EthereumChain {
@@ -28,6 +31,7 @@ impl Chain for EthereumChain {
             genesis_validator_root: OnceLock::new(),
             forks: OnceLock::new(),
             last_updated_time_sec: Mutex::new(0),
+            state_differ: Mutex::new(EthereumStateDiff::new())
         }
     }
 
@@ -42,10 +46,27 @@ impl Chain for EthereumChain {
         let bootstrap = ConsensusApi::bootstrap(config.checkpoint_block_root).await;
         let mut store = self.light_client_store.lock().unwrap();
         apply_bootstrap(&mut store, &bootstrap);
+
+        self.state_differ.lock().unwrap().add_bootstrap(bootstrap);
         println!("Ethereum light client initialized with bootstrap data.");
     }
 
     async fn get_updates(&self, state: ChainState) -> Option<ChainUpdates> {
+        self.check_and_sync().await;
+
+        let canister_state: LightClientStatePayload<MainnetConsensusSpec> = serde_json::from_slice(&state.state).unwrap();
+        // check for next sync committee
+
+        let updates = self.state_differ.lock().unwrap().get_diff_updates(&canister_state);
+        let serialized_updates: Vec<Vec<u8>> = updates.into_iter().map(|update| serde_json::to_vec(&update).unwrap()).collect();
+
+        if serialized_updates.len() > 0 { Some(ChainUpdates { version: 1, updates: serialized_updates }) }
+        else { None }
+    }
+}
+
+impl EthereumChain {
+    async fn check_and_sync(&self) {
         let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
         let current_time_sec = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
         let genesis_time = self.genesis_time.get().unwrap().clone();
@@ -55,7 +76,7 @@ impl Chain for EthereumChain {
         let last_updated_time_sec = *self.last_updated_time_sec.lock().unwrap();
 
         if current_time_sec - last_updated_time_sec < 12 {
-            return None;
+            return;
         }
 
         let optimistic_slot = store.optimistic_header.beacon.slot;
@@ -72,6 +93,7 @@ impl Chain for EthereumChain {
 
             if update.len() == 1 {
                 self.verify_and_apply_update(&update[0]);
+                self.state_differ.lock().unwrap().add_update_with_sync_committee(update[0].clone());
             }
         } else if finalized_period + 1 < current_period {
             self.sync(current_period, finalized_period).await;
@@ -85,13 +107,9 @@ impl Chain for EthereumChain {
         if new_optimistic_slot != optimistic_slot {
             let mut last_updated_time_sec = self.last_updated_time_sec.lock().unwrap();
             *last_updated_time_sec = current_time_sec;
-        }
-
-        None
+        } 
     }
-}
 
-impl EthereumChain {
     async fn sync(&self, current_period: u64, mut finalized_period: u64) {
         println!("Syncing...");
         let mut updates: Vec<Update<MainnetConsensusSpec>> = vec![];
@@ -114,6 +132,7 @@ impl EthereumChain {
 
         for update in updates {
             self.verify_and_apply_update(&update);
+            self.state_differ.lock().unwrap().add_update_with_sync_committee(update);
         }
 
         self.sync_head().await;
@@ -128,6 +147,8 @@ impl EthereumChain {
         
         self.verify_and_apply_optimistic_update(&optimistic_update);
         self.verify_and_apply_finality_update(&finality_update);
+
+        self.state_differ.lock().unwrap().add_update_without_sync_committee(optimistic_update, finality_update);
     }
 
     fn verify_and_apply_finality_update(
@@ -165,7 +186,11 @@ impl EthereumChain {
         let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
         let current_slot = expected_current_slot(current_time_ns.try_into().unwrap(), *genesis_time);
 
-        verify_generic_update(update, current_slot, &store, *genesis_root, forks).unwrap();
-        apply_generic_update(&mut store, update);
+        let result = verify_generic_update(update, current_slot, &store, *genesis_root, forks);
+        if result.is_ok() {
+            apply_generic_update(&mut store, update);
+        } else {
+            println!("Result is err: {:?}", result.err().unwrap());
+        }
     }
 }
