@@ -1,7 +1,7 @@
 mod api;
 mod diff;
 
-use std::{sync::{Mutex, OnceLock}, time::SystemTime};
+use std::time::SystemTime;
 use alloy_primitives::B256;
 use api::{ConsensusApi, ExecutionApi};
 use diff::EthereumStateDiff;
@@ -12,52 +12,45 @@ use ic_lightclient_types::EthereumConfig;
 
 const MAX_REQUEST_LIGHT_CLIENT_UPDATES: u8 = 128;
 
+#[derive(Default)]
 pub struct EthereumChain {
-    light_client_store: Mutex<LightClientStore<MainnetConsensusSpec>>,
-    genesis_time: OnceLock<u64>,
-    genesis_validator_root: OnceLock<B256>,
-    forks: OnceLock<Forks>,
-    last_updated_time_sec: Mutex<u64>,
-    state_differ: Mutex<EthereumStateDiff>,
+    light_client_store: LightClientStore<MainnetConsensusSpec>,
+    genesis_time: u64,
+    genesis_validator_root: B256,
+    forks: Forks,
+    last_updated_time_sec: u64,
+    state_differ: EthereumStateDiff,
 }
 
 impl Chain for EthereumChain {
     type ConfigType = EthereumConfig;
 
     fn new() -> Self {
-        Self {
-            light_client_store: Mutex::default(),
-            genesis_time: OnceLock::new(),
-            genesis_validator_root: OnceLock::new(),
-            forks: OnceLock::new(),
-            last_updated_time_sec: Mutex::new(0),
-            state_differ: Mutex::new(EthereumStateDiff::new())
-        }
+        Self::default()
     }
 
-    async fn init(&self, config: EthereumConfig) {
+    async fn init(&mut self, config: EthereumConfig) {
         ExecutionApi::init(config.execution_api.clone());
         ConsensusApi::init(config.consensus_api.clone());
 
-        self.genesis_time.set(config.genesis_time).unwrap();
-        self.genesis_validator_root.set(config.genesis_validator_root).unwrap();
-        self.forks.set(config.forks).unwrap();
+        self.genesis_time = config.genesis_time;
+        self.genesis_validator_root = config.genesis_validator_root;
+        self.forks = config.forks;
 
         let bootstrap = ConsensusApi::bootstrap(config.checkpoint_block_root).await;
-        let mut store = self.light_client_store.lock().unwrap();
-        apply_bootstrap(&mut store, &bootstrap);
+        apply_bootstrap(&mut self.light_client_store, &bootstrap);
 
-        self.state_differ.lock().unwrap().add_bootstrap(bootstrap);
+        self.state_differ.add_bootstrap(bootstrap);
         println!("Ethereum light client initialized with bootstrap data.");
     }
 
-    async fn get_updates(&self, state: ChainState) -> Option<ChainUpdates> {
+    async fn get_updates(&mut self, state: ChainState) -> Option<ChainUpdates> {
         self.check_and_sync().await;
 
         let canister_state: LightClientStatePayload<MainnetConsensusSpec> = serde_json::from_slice(&state.state).unwrap();
         // check for next sync committee
 
-        let updates = self.state_differ.lock().unwrap().get_diff_updates(&canister_state);
+        let updates = self.state_differ.get_diff_updates(&canister_state);
         let serialized_updates: Vec<Vec<u8>> = updates.into_iter().map(|update| serde_json::to_vec(&update).unwrap()).collect();
 
         if serialized_updates.len() > 0 { Some(ChainUpdates { version: 1, updates: serialized_updates }) }
@@ -66,23 +59,19 @@ impl Chain for EthereumChain {
 }
 
 impl EthereumChain {
-    async fn check_and_sync(&self) {
+    async fn check_and_sync(&mut self) {
         let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
         let current_time_sec = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
-        let genesis_time = self.genesis_time.get().unwrap().clone();
+        let genesis_time = self.genesis_time;
         let current_slot = expected_current_slot(current_time_ns.try_into().unwrap(), genesis_time);
 
-        let store = self.light_client_store.lock().unwrap();
-        let last_updated_time_sec = *self.last_updated_time_sec.lock().unwrap();
-
-        if current_time_sec - last_updated_time_sec < 12 {
+        if current_time_sec - self.last_updated_time_sec < 12 {
             return;
         }
 
-        let optimistic_slot = store.optimistic_header.beacon.slot;
-        let finalized_slot = store.finalized_header.beacon.slot;
-        let is_next_sync_committee_known = store.next_sync_committee.is_some();
-        drop(store);
+        let optimistic_slot = self.light_client_store.optimistic_header.beacon.slot;
+        let finalized_slot = self.light_client_store.finalized_header.beacon.slot;
+        let is_next_sync_committee_known = self.light_client_store.next_sync_committee.is_some();
 
         let current_period = calc_sync_period::<MainnetConsensusSpec>(current_slot);
         let optimistic_period = calc_sync_period::<MainnetConsensusSpec>(optimistic_slot);
@@ -93,7 +82,7 @@ impl EthereumChain {
 
             if update.len() == 1 {
                 self.verify_and_apply_update(&update[0]);
-                self.state_differ.lock().unwrap().add_update_with_sync_committee(update[0].clone());
+                self.state_differ.add_update_with_sync_committee(update[0].clone());
             }
         } else if finalized_period + 1 < current_period {
             self.sync(current_period, finalized_period).await;
@@ -101,16 +90,14 @@ impl EthereumChain {
             self.sync_head().await;
         }
 
-        let store = self.light_client_store.lock().unwrap();
-        let new_optimistic_slot = store.optimistic_header.beacon.slot;
+        let new_optimistic_slot = self.light_client_store.optimistic_header.beacon.slot;
 
         if new_optimistic_slot != optimistic_slot {
-            let mut last_updated_time_sec = self.last_updated_time_sec.lock().unwrap();
-            *last_updated_time_sec = current_time_sec;
+            self.last_updated_time_sec = current_time_sec;
         } 
     }
 
-    async fn sync(&self, current_period: u64, mut finalized_period: u64) {
+    async fn sync(&mut self, current_period: u64, mut finalized_period: u64) {
         println!("Syncing...");
         let mut updates: Vec<Update<MainnetConsensusSpec>> = vec![];
         if current_period - finalized_period >= 128 {
@@ -132,13 +119,13 @@ impl EthereumChain {
 
         for update in updates {
             self.verify_and_apply_update(&update);
-            self.state_differ.lock().unwrap().add_update_with_sync_committee(update);
+            self.state_differ.add_update_with_sync_committee(update);
         }
 
         self.sync_head().await;
     }
 
-    async fn sync_head(&self) {
+    async fn sync_head(&mut self) {
         let optimistic_update = tokio::spawn(async { ConsensusApi::optimistic_update().await });
         let finality_update = tokio::spawn(async { ConsensusApi::finality_update().await });
 
@@ -148,11 +135,11 @@ impl EthereumChain {
         self.verify_and_apply_optimistic_update(&optimistic_update);
         self.verify_and_apply_finality_update(&finality_update);
 
-        self.state_differ.lock().unwrap().add_update_without_sync_committee(optimistic_update, finality_update);
+        self.state_differ.add_update_without_sync_committee(optimistic_update, finality_update);
     }
 
     fn verify_and_apply_finality_update(
-        &self,
+        &mut self,
         update: &FinalityUpdate<MainnetConsensusSpec>
     ) {
         let update = GenericUpdate::from(update);
@@ -160,7 +147,7 @@ impl EthereumChain {
     }
 
     fn verify_and_apply_optimistic_update(
-        &self,
+        &mut self,
         update: &OptimisticUpdate<MainnetConsensusSpec>
     ) {
         let update = GenericUpdate::from(update);
@@ -168,7 +155,7 @@ impl EthereumChain {
     }
 
     fn verify_and_apply_update(
-        &self,
+        &mut self,
         update: &Update<MainnetConsensusSpec>
     ) {
         let update = GenericUpdate::from(update);
@@ -176,19 +163,18 @@ impl EthereumChain {
     }
 
     fn verify_and_apply_generic_update(
-        &self,
+        &mut self,
         update: &GenericUpdate<MainnetConsensusSpec>
     ) {
-        let mut store = self.light_client_store.lock().unwrap();
-        let genesis_root = self.genesis_validator_root.get().unwrap();
-        let genesis_time = self.genesis_time.get().unwrap();
-        let forks = self.forks.get().unwrap();
+        let genesis_root = self.genesis_validator_root;
+        let genesis_time = self.genesis_time;
+        let forks = &self.forks;
         let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
-        let current_slot = expected_current_slot(current_time_ns.try_into().unwrap(), *genesis_time);
+        let current_slot = expected_current_slot(current_time_ns.try_into().unwrap(), genesis_time);
 
-        let result = verify_generic_update(update, current_slot, &store, *genesis_root, forks);
+        let result = verify_generic_update(update, current_slot, &mut self.light_client_store, genesis_root, forks);
         if result.is_ok() {
-            apply_generic_update(&mut store, update);
+            apply_generic_update(&mut self.light_client_store, update);
         } else {
             println!("Result is err: {:?}", result.err().unwrap());
         }

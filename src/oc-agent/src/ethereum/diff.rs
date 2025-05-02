@@ -26,8 +26,8 @@ pub struct EthereumStateDiff {
     bootstrap: Option<Bootstrap<MainnetConsensusSpec>>
 }
 
-impl EthereumStateDiff {
-    pub fn new() -> Self {
+impl Default for EthereumStateDiff {
+    fn default() -> Self {
         let mut updates = Vec::new();
         updates.resize(MAX_LIGHT_CLIENT_SLOTS_FOR_DIFF, None);
 
@@ -37,7 +37,9 @@ impl EthereumStateDiff {
             bootstrap: None
         }
     }
+}
 
+impl EthereumStateDiff {
     fn get_index_for_period(
         &self,
         period: u64
