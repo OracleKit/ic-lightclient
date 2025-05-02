@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use ic_lightclient_types::{ChainState, ChainUpdates};
 use crate::ethereum::EthereumChain;
 
@@ -7,18 +5,18 @@ pub trait Chain {
     type ConfigType;
 
     fn new() -> Self;
-    async fn init(&self, config: Self::ConfigType);
-    async fn get_updates(&self, state: ChainState) -> Option<ChainUpdates>;
+    async fn init(&mut self, config: Self::ConfigType);
+    async fn get_updates(&mut self, state: ChainState) -> Option<ChainUpdates>;
 }
 
 pub struct ChainManager {
-    pub ethereum: Arc<EthereumChain>
+    pub ethereum: EthereumChain
 }
 
 impl ChainManager {
     pub fn new() -> Self {
         Self {
-            ethereum: Arc::new(EthereumChain::new())
+            ethereum: EthereumChain::new()
         }
     }
 }
