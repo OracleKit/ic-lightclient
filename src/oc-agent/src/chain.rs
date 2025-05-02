@@ -1,4 +1,7 @@
+use std::sync::Arc;
+
 use ic_lightclient_types::{ChainState, ChainUpdates};
+use tokio::sync::Mutex;
 use crate::ethereum::EthereumChain;
 
 pub trait Chain {
@@ -9,14 +12,15 @@ pub trait Chain {
     async fn get_updates(&mut self, state: ChainState) -> Option<ChainUpdates>;
 }
 
+#[derive(Clone)]
 pub struct ChainManager {
-    pub ethereum: EthereumChain
+    pub ethereum: Arc<Mutex<EthereumChain>>
 }
 
 impl ChainManager {
     pub fn new() -> Self {
         Self {
-            ethereum: EthereumChain::new()
+            ethereum: Arc::new(Mutex::new(EthereumChain::new()))
         }
     }
 }
