@@ -1,6 +1,6 @@
 set -e 
 
-cargo build -p ic-lightclient-oc-agent
+RUSTFLAGS=-Awarnings cargo build -p ic-lightclient-oc-agent
 
 dfx start --clean --background
 dfx deploy canister --specified-id uxrrr-q7777-77774-qaaaq-cai
