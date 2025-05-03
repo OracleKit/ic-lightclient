@@ -1,4 +1,4 @@
-use ic_lightclient_ethereum::{helios::{consensus::calc_sync_period, spec::MainnetConsensusSpec, types::{Bootstrap, FinalityUpdate, OptimisticUpdate, Update}}, payload::{LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
+use ic_lightclient_ethereum::{helios::{consensus::calc_sync_period, spec::MainnetConsensusSpec, types::{Bootstrap, FinalityUpdate, OptimisticUpdate, Update}}, payload::{LightClientStatePayload, LightClientUpdatePayload}};
 
 const MAX_LIGHT_CLIENT_SLOTS_FOR_DIFF: usize = 20;
 
@@ -116,7 +116,7 @@ impl EthereumStateDiff {
         let mut updates = vec![];
 
         match &state {
-            LightClientStatePayload::Bootstrap(state) => {
+            LightClientStatePayload::Bootstrap(_state) => {
                 let bootstrap_update = self.bootstrap.as_ref().expect("Bootstrap update not found");
 
                 // if state.block_hash != bootstrap_update.header.beacon.tree_hash_root() {

@@ -1,16 +1,7 @@
-type CanisterState = record { version : nat64; state : vec ChainState };
-type CanisterUpdates = record { version : nat64; updates : vec ChainUpdates };
-type ChainState = record {
-  tasks : vec blob;
-  version : nat64;
-  state : blob;
-  chain_id : nat64;
-};
-type ChainUpdates = record {
-  version : nat64;
-  chain_id : nat64;
-  updates : vec blob;
-};
+type CanisterState = record { ethereum : ChainState; version : nat64 };
+type CanisterUpdates = record { ethereum : ChainUpdates; version : nat64 };
+type ChainState = record { tasks : vec blob; version : nat64; state : blob };
+type ChainUpdates = record { version : nat64; updates : vec blob };
 service : {
   get_state : () -> (CanisterState) query;
   update_state : (CanisterUpdates) -> ();

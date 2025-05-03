@@ -1,0 +1,40 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+      
+      - name: setup rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+      
+      - name: setup dfx
+        uses: dfinity/setup-dfx@main
+        with:
+          dfx-version: "0.26.0"
+
+      - name: verify installs
+        run: |
+          node --version
+          yarn --version
+          cargo --version
+          dfx --version
+
+      - name: run e2e tests
+        run: |
+          yarn test:e2e
