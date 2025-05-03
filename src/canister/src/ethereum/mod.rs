@@ -110,3 +110,13 @@ impl ChainInterface for EthereumChain {
         }
     }
 }
+
+impl EthereumChain {
+    pub fn get_latest_block_hash(&self) -> String {
+        if !self.is_bootstrapped {
+            self.config.ethereum.checkpoint_block_root.to_string()
+        } else {
+            self.store.optimistic_header.beacon.body_root.to_string()
+        }
+    }
+}

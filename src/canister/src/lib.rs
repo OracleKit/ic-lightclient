@@ -8,6 +8,13 @@ use state::GlobalState;
 pub use crate::chain::ChainInterface;
 
 #[ic_cdk::query]
+fn get_latest_block_hash() -> String {
+    let chains = GlobalState::chains();
+    let ethereum = &chains.borrow().ethereum;
+    ethereum.get_latest_block_hash()
+}
+
+#[ic_cdk::query]
 fn get_state() -> CanisterState {
     let chains = GlobalState::chains();
     let ethereum_state = chains.borrow().ethereum.get_state();
