@@ -15,6 +15,6 @@ new_block_hash=$(dfx canister call canister get_latest_block_hash)
 jobs -p | xargs kill -9
 dfx stop
 
-if [[ $initial_block_hash == $new_block_hash ]]; then
+if [[ $initial_block_hash != $new_block_hash ]]; then
     exit 1
 fi
