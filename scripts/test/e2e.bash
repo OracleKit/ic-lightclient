@@ -7,7 +7,7 @@ RUSTFLAGS=-Awarnings  dfx deploy canister --specified-id uxrrr-q7777-77774-qaaaq
 
 initial_block_hash=$(dfx canister call canister get_latest_block_hash)
 
-cargo run ic-lightclient-oc-agent &
+./target/debug/ic-lightclient-oc-agent &
 sleep 30
 
 new_block_hash=$(dfx canister call canister get_latest_block_hash)
