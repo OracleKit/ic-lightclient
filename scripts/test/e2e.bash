@@ -1,6 +1,6 @@
 set -e 
 
-cargo build ic-lightclient-oc-agent
+cargo build -p ic-lightclient-oc-agent
 
 dfx start --clean --background
 dfx deploy canister --specified-id uxrrr-q7777-77774-qaaaq-cai
