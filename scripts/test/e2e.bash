@@ -3,7 +3,7 @@ set -e
 RUSTFLAGS=-Awarnings cargo build -p ic-lightclient-oc-agent
 
 dfx start --clean --background
-dfx deploy canister --specified-id uxrrr-q7777-77774-qaaaq-cai
+RUSTFLAGS=-Awarnings  dfx deploy canister --specified-id uxrrr-q7777-77774-qaaaq-cai
 
 initial_block_hash=$(dfx canister call canister get_latest_block_hash)
 
