@@ -1,12 +1,14 @@
 use std::rc::Rc;
-use ic_lightclient_types::Config;
+use ic_lightclient_types::{Config, ICPConfig};
+use ic_lightclient_ethereum::config::mainnet;
 use std::cell::LazyCell;
-use std::include_str;
 
 thread_local! {
     static CONFIG: LazyCell<Rc<Config>> = LazyCell::new(|| {
-        let config = toml::de::from_str(include_str!("../../../config.toml"))
-            .expect("Failed to parse config");
+        let config = Config {
+            ethereum: mainnet(),
+            icp: ICPConfig::default()
+        };
 
         Rc::new(config)
     });

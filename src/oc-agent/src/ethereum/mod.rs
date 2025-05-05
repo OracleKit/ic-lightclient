@@ -8,7 +8,7 @@ use diff::EthereumStateDiff;
 use ic_lightclient_ethereum::{helios::{consensus::{apply_bootstrap, apply_generic_update, calc_sync_period, expected_current_slot, verify_generic_update}, spec::MainnetConsensusSpec, types::{FinalityUpdate, Forks, GenericUpdate, LightClientStore, OptimisticUpdate, Update}}, payload::LightClientStatePayload};
 use ic_lightclient_types::{ChainState, ChainUpdates};
 use crate::chain::Chain;
-use ic_lightclient_types::EthereumConfig;
+use ic_lightclient_ethereum::config::EthereumConfig;
 
 const MAX_REQUEST_LIGHT_CLIENT_UPDATES: u8 = 128;
 

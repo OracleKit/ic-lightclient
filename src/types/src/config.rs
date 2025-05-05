@@ -1,17 +1,6 @@
 use serde::Deserialize;
-use alloy_primitives::B256;
-use ic_lightclient_ethereum::helios::types::Forks;
 use ic_principal::Principal;
-
-#[derive(Deserialize, Debug, Default)]
-pub struct EthereumConfig {
-    pub consensus_api: String,
-    pub execution_api: String,
-    pub checkpoint_block_root: B256,
-    pub genesis_validator_root: B256,
-    pub genesis_time: u64,
-    pub forks: Forks,
-}
+use ic_lightclient_ethereum::config::EthereumConfig;
 
 #[derive(Deserialize, Debug)]
 pub struct ICPConfig {
