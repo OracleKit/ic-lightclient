@@ -23,7 +23,7 @@ fn icp_config_local() -> ICPConfig {
 
 fn icp_config_prod() -> ICPConfig {
     ICPConfig {
-        canister_id: Principal::from_str("").unwrap(),
+        canister_id: Principal::from_str("mawej-zyaaa-aaaah-qqbqa-cai").unwrap(),
         agent_url: "https://icp-api.io".into()
     }
 }
