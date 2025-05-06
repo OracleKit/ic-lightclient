@@ -2,7 +2,20 @@ type CanisterState = record { ethereum : ChainState; version : nat64 };
 type CanisterUpdates = record { ethereum : ChainUpdates; version : nat64 };
 type ChainState = record { tasks : vec blob; version : nat64; state : blob };
 type ChainUpdates = record { version : nat64; updates : vec blob };
+type HttpRequest = record {
+  url : text;
+  method : text;
+  body : blob;
+  headers : vec record { text; text };
+};
+type HttpResponse = record {
+  body : blob;
+  headers : vec record { text; text };
+  status_code : nat16;
+};
 service : {
+  get_latest_block_hash : () -> (text) query;
   get_state : () -> (CanisterState) query;
+  http_request : (HttpRequest) -> (HttpResponse) query;
   update_state : (CanisterUpdates) -> ();
 }

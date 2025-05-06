@@ -2,8 +2,10 @@ mod chain;
 mod ethereum;
 mod state;
 mod config;
+mod metrics;
 
 use ic_lightclient_types::{CanisterState, CanisterUpdates};
+use metrics::{serve_metrics, HttpRequest, HttpResponse};
 use state::GlobalState;
 pub use crate::chain::ChainInterface;
 
@@ -35,6 +37,11 @@ fn update_state(updates: CanisterUpdates) {
     let end = ic_cdk::api::performance_counter(0);
     let cycles = ic_cdk::api::canister_balance();
     ic_cdk::println!("Instructions: {}, cycles: {}", end - start, cycles);
+}
+
+#[ic_cdk::query]
+fn http_request(_: HttpRequest) -> HttpResponse {
+    serve_metrics()
 }
 
 ic_cdk::export_candid!();
