@@ -30,6 +30,11 @@ jobs:
         with:
           target: wasm32-unknown-unknown
       
+      - name: setup dfx
+        uses: dfinity/setup-dfx@main
+        with:
+          dfx-version: "0.26.0"
+            
       - name: Build the project
         run: |
           RUSTFLAGS=-Awarnings cargo build -p ic-lightclient-oc-agent --release
