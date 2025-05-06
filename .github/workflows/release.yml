@@ -1,0 +1,65 @@
+name: Release and Deploy to Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tag for the release (e.g., v1.0.0)'
+        required: true
+      release_body:
+        description: 'Description or changelog for the release'
+        required: false
+      target_repo:
+        description: 'Target repo for repository_dispatch (owner/repo)'
+        required: true
+        default: OracleKit/ic-lightclient-deploy
+      event_type:
+        description: 'Event type to trigger in target repo'
+        required: true
+        default: 'staging_deploy'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: setup rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+      
+      - name: Build the project
+        run: RUSTFLAGS=-Awarnings cargo build -p ic-lightclient-oc-agent --release
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          body: ${{ github.event.inputs.release_body }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release asset (binary)
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: true
+          files: target/release/ic-lightclient-oc-agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-staging:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger repository_dispatch on target repo
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.event.inputs.target_repo }}/dispatches \
+            -d '{"event_type":"${{ github.event.inputs.event_type }}","client_payload":{"release_tag":"${{ github.event.inputs.release_tag }}"}}'
