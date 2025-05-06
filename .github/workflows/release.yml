@@ -34,10 +34,14 @@ jobs:
         uses: dfinity/setup-dfx@main
         with:
           dfx-version: "0.26.0"
+
+      - name: install ic-wasm
+        uses: taiki-e/install-action@v2
+        with:
+          tool: ic-wasm
             
       - name: Build the project
         run: |
-          cargo install ic-wasm
           RUSTFLAGS=-Awarnings cargo build -p ic-lightclient-oc-agent --release
           RUSTFLAGS=-Awarnings dfx build --check canister
           ic-wasm \
