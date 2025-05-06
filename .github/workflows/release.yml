@@ -40,12 +40,10 @@ jobs:
           cargo install ic-wasm
           RUSTFLAGS=-Awarnings cargo build -p ic-lightclient-oc-agent --release
           RUSTFLAGS=-Awarnings dfx build --check canister
-          ic-wasm \ 
+          ic-wasm \
             --output target/wasm32-unknown-unknown/release/ic_lightclient_canister.wasm \
             target/wasm32-unknown-unknown/release/ic_lightclient_canister.wasm \
-            metadata \
-            --file ./src/canister/canister.did \
-            candid:service
+            metadata --file src/canister/canister.did candid:service
 
       - name: Create GitHub Release
         id: create_release
