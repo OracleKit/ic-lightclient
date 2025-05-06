@@ -116,7 +116,7 @@ impl EthereumChain {
         if !self.is_bootstrapped {
             self.config.ethereum.checkpoint_block_root.to_string()
         } else {
-            self.store.optimistic_header.beacon.body_root.to_string()
+            self.store.optimistic_header.beacon.state_root.to_string()
         }
     }
 }
