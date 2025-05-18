@@ -3,6 +3,7 @@ mod chain;
 mod ethereum;
 mod config;
 mod http;
+mod util;
 
 use std::time::Duration;
 use chain::{Chain, ChainManager};
