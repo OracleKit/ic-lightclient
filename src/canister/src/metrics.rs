@@ -39,7 +39,7 @@ pub fn serve_metrics() -> HttpResponse {
         status_code: 200,
         headers: vec![
             HeaderField("Content-Length".to_string(), format!("{}", body.len())),
-            HeaderField("Cache-Control".to_string(), format!("max-age={}", 300)),
+            HeaderField("Cache-Control".to_string(), format!("max-age={}", 120)),
             HeaderField("Content-Type".to_string(), "text/plain".to_string())
         ],
         body: body
