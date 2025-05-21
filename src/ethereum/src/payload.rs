@@ -1,69 +1,20 @@
 use alloy_primitives::B256;
 use serde::{Deserialize, Serialize};
-use crate::helios::{spec::ConsensusSpec, types::{Bootstrap, FinalityUpdate, LightClientHeader, OptimisticUpdate, Update}};
+use crate::helios::{spec::ConsensusSpec, types::{Bootstrap, GenericUpdate, LightClientHeader, LightClientStore, SyncCommittee}};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct BootstrapPayload<S: ConsensusSpec> {
-    pub bootstrap: Bootstrap<S>
-}
-
-impl<S> From<Bootstrap<S>> for BootstrapPayload<S>
-where
-    S: ConsensusSpec,
-{
-    fn from(bootstrap: Bootstrap<S>) -> Self {
-        Self { bootstrap }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct UpdatePayload<S: ConsensusSpec> {
-    pub update: Update<S>
-}
-
-impl<S> From<Update<S>> for UpdatePayload<S>
-where
-    S: ConsensusSpec,
-{
-    fn from(update: Update<S>) -> Self {
-        Self { update }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct OptimisticUpdatePayload<S: ConsensusSpec> {
-    pub update: OptimisticUpdate<S>
-}
-
-impl<S> From<OptimisticUpdate<S>> for OptimisticUpdatePayload<S>
-where
-    S: ConsensusSpec,
-{
-    fn from(update: OptimisticUpdate<S>) -> Self {
-        Self { update }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct FinalityUpdatePayload<S: ConsensusSpec> {
-    pub update: FinalityUpdate<S>
-}
-
-impl<S> From<FinalityUpdate<S>> for FinalityUpdatePayload<S>
-where
-    S: ConsensusSpec,
-{
-    fn from(update: FinalityUpdate<S>) -> Self {
-        Self { update }
-    }
+    pub optimistic_header: Option<LightClientHeader>,
+    pub finalized_header: Option<LightClientHeader>,
+    pub current_sync_committee: Option<SyncCommittee<S>>,
+    pub next_sync_committee: Option<Option<SyncCommittee<S>>>,
+    pub best_valid_update: Option<Option<GenericUpdate<S>>>
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum LightClientUpdatePayload<S: ConsensusSpec> {
-    Bootstrap(BootstrapPayload<S>),
-    Update(UpdatePayload<S>),
-    OptimisticUpdate(OptimisticUpdatePayload<S>),
-    FinalityUpdate(FinalityUpdatePayload<S>)
+    Bootstrap(Bootstrap<S>),
+    Update(UpdatePayload<S>)
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -73,14 +24,34 @@ pub struct LightClientStateBootstrap {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LightClientStateActive<S: ConsensusSpec> {
-    pub finalized_header: LightClientHeader,
-    pub optimistic_header: LightClientHeader,
-    pub has_next_sync_committee: bool,
-    pub awaiting_challenge: Vec<LightClientUpdatePayload<S>>,
+    pub store: LightClientStore<S>
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum LightClientStatePayload<S: ConsensusSpec> {
     Bootstrap(LightClientStateBootstrap),
     Active(LightClientStateActive<S>)
+}
+
+
+pub fn apply_update_payload<S: ConsensusSpec>(store: &mut LightClientStore<S>, update: UpdatePayload<S>) {
+    if let Some(current_sync_committee) = update.current_sync_committee {
+        store.current_sync_committee = current_sync_committee;
+    }
+
+    if let Some(next_sync_committee) = update.next_sync_committee {
+        store.next_sync_committee = next_sync_committee;
+    }
+
+    if let Some(optimistic_header) = update.optimistic_header {
+        store.optimistic_header = optimistic_header;
+    }
+
+    if let Some(finalized_header) = update.finalized_header {
+        store.finalized_header = finalized_header;
+    }
+
+    if let Some(best_valid_update) = update.best_valid_update {
+        store.best_valid_update = best_valid_update;
+    }
 }

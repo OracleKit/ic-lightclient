@@ -117,7 +117,7 @@ pub struct SyncCommittee<S: ConsensusSpec> {
     pub aggregate_pubkey: PublicKey,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default, Encode, Decode, TreeHash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default, Encode, Decode, TreeHash, PartialEq)]
 pub struct SyncAggregate<S: ConsensusSpec> {
     pub sync_committee_bits: BitVector<S::SyncCommitteeSize>,
     pub sync_committee_signature: Signature,
@@ -139,7 +139,7 @@ pub struct Fork {
     pub fork_version: FixedBytes<4>,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GenericUpdate<S: ConsensusSpec> {
     pub attested_header: LightClientHeader,
     pub sync_aggregate: SyncAggregate<S>,
