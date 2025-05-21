@@ -493,8 +493,7 @@ fn safety_threshold<S: ConsensusSpec>(store: &LightClientStore<S>) -> u64 {
     cmp::max(
         store.current_max_active_participants,
         store.previous_max_active_participants,
-    )
-    / 2
+    ) / 2
 }
 
 fn is_valid_header<S: ConsensusSpec>(header: &LightClientHeader, _: &Forks) -> bool {
