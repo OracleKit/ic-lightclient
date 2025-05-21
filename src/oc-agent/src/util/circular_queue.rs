@@ -1,17 +1,14 @@
 pub struct CircularQueue<T: Clone> {
     head: usize,
-    buf: Vec<Option<T>>
+    buf: Vec<Option<T>>,
 }
 
 impl<T: Clone> CircularQueue<T> {
     pub fn new(size: usize) -> Self {
         let mut buf = Vec::new();
         buf.resize(size, None);
-        
-        Self {
-            head: 0,
-            buf
-        }
+
+        Self { head: 0, buf }
     }
 
     pub fn queue(&mut self, el: T) {
@@ -58,8 +55,8 @@ mod tests {
     fn test_queue_multi() {
         let size = 10;
         let mut queue = CircularQueue::new(size);
-        
-        for i in 0..(2*size) {
+
+        for i in 0..(2 * size) {
             queue.queue(i);
         }
 

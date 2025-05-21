@@ -1,14 +1,24 @@
 mod api;
 mod diff;
 
-use std::time::SystemTime;
+use crate::chain::Chain;
 use alloy_primitives::B256;
 use api::{ConsensusApi, ExecutionApi};
 use diff::EthereumStateDiff;
-use ic_lightclient_ethereum::{helios::{consensus::{apply_bootstrap, apply_generic_update, calc_sync_period, expected_current_slot, verify_generic_update}, spec::MainnetConsensusSpec, types::{FinalityUpdate, Forks, GenericUpdate, LightClientStore, OptimisticUpdate, Update}}, payload::LightClientStatePayload};
-use ic_lightclient_types::{ChainState, ChainUpdates};
-use crate::chain::Chain;
 use ic_lightclient_ethereum::config::EthereumConfig;
+use ic_lightclient_ethereum::{
+    helios::{
+        consensus::{
+            apply_bootstrap, apply_generic_update, calc_sync_period, expected_current_slot,
+            verify_generic_update,
+        },
+        spec::MainnetConsensusSpec,
+        types::{FinalityUpdate, Forks, GenericUpdate, LightClientStore, OptimisticUpdate, Update},
+    },
+    payload::LightClientStatePayload,
+};
+use ic_lightclient_types::{ChainState, ChainUpdates};
+use std::time::SystemTime;
 
 const MAX_REQUEST_LIGHT_CLIENT_UPDATES: u8 = 128;
 
@@ -47,21 +57,39 @@ impl Chain for EthereumChain {
     async fn get_updates(&mut self, state: ChainState) -> Option<ChainUpdates> {
         self.check_and_sync().await;
 
-        let canister_state: LightClientStatePayload<MainnetConsensusSpec> = serde_json::from_slice(&state.state).unwrap();
+        let canister_state: LightClientStatePayload<MainnetConsensusSpec> =
+            serde_json::from_slice(&state.state).unwrap();
         // check for next sync committee
 
-        let updates = self.state_differ.get_diff_updates(&canister_state, &self.light_client_store);
-        let serialized_updates: Vec<Vec<u8>> = updates.into_iter().map(|update| serde_json::to_vec(&update).unwrap()).collect();
+        let updates = self
+            .state_differ
+            .get_diff_updates(&canister_state, &self.light_client_store);
+        let serialized_updates: Vec<Vec<u8>> = updates
+            .into_iter()
+            .map(|update| serde_json::to_vec(&update).unwrap())
+            .collect();
 
-        if serialized_updates.len() > 0 { Some(ChainUpdates { version: 1, updates: serialized_updates }) }
-        else { None }
+        if serialized_updates.len() > 0 {
+            Some(ChainUpdates {
+                version: 1,
+                updates: serialized_updates,
+            })
+        } else {
+            None
+        }
     }
 }
 
 impl EthereumChain {
     async fn check_and_sync(&mut self) {
-        let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
-        let current_time_sec = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
+        let current_time_ns = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let current_time_sec = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         let genesis_time = self.genesis_time;
         let current_slot = expected_current_slot(current_time_ns.try_into().unwrap(), genesis_time);
 
@@ -93,7 +121,7 @@ impl EthereumChain {
 
         if new_optimistic_slot != optimistic_slot {
             self.last_updated_time_sec = current_time_sec;
-        } 
+        }
     }
 
     async fn sync(&mut self, current_period: u64, mut finalized_period: u64) {
@@ -105,15 +133,16 @@ impl EthereumChain {
                     current_period - finalized_period,
                     MAX_REQUEST_LIGHT_CLIENT_UPDATES.into(),
                 );
-                
+
                 let update = ConsensusApi::updates(finalized_period, batch_size).await;
                 updates.extend(update);
 
                 finalized_period += batch_size;
             }
         }
-        
-        let update = ConsensusApi::updates(finalized_period, MAX_REQUEST_LIGHT_CLIENT_UPDATES.into()).await;
+
+        let update =
+            ConsensusApi::updates(finalized_period, MAX_REQUEST_LIGHT_CLIENT_UPDATES.into()).await;
         updates.extend(update);
 
         for update in updates {
@@ -129,46 +158,46 @@ impl EthereumChain {
 
         let optimistic_update = optimistic_update.await.unwrap();
         let finality_update = finality_update.await.unwrap();
-        
+
         self.verify_and_apply_optimistic_update(&optimistic_update);
         self.verify_and_apply_finality_update(&finality_update);
     }
 
-    fn verify_and_apply_finality_update(
-        &mut self,
-        update: &FinalityUpdate<MainnetConsensusSpec>
-    ) {
+    fn verify_and_apply_finality_update(&mut self, update: &FinalityUpdate<MainnetConsensusSpec>) {
         let update = GenericUpdate::from(update);
         self.verify_and_apply_generic_update(&update);
     }
 
     fn verify_and_apply_optimistic_update(
         &mut self,
-        update: &OptimisticUpdate<MainnetConsensusSpec>
+        update: &OptimisticUpdate<MainnetConsensusSpec>,
     ) {
         let update = GenericUpdate::from(update);
         self.verify_and_apply_generic_update(&update);
     }
 
-    fn verify_and_apply_update(
-        &mut self,
-        update: &Update<MainnetConsensusSpec>
-    ) {
+    fn verify_and_apply_update(&mut self, update: &Update<MainnetConsensusSpec>) {
         let update = GenericUpdate::from(update);
         self.verify_and_apply_generic_update(&update);
     }
 
-    fn verify_and_apply_generic_update(
-        &mut self,
-        update: &GenericUpdate<MainnetConsensusSpec>
-    ) {
+    fn verify_and_apply_generic_update(&mut self, update: &GenericUpdate<MainnetConsensusSpec>) {
         let genesis_root = self.genesis_validator_root;
         let genesis_time = self.genesis_time;
         let forks = &self.forks;
-        let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
+        let current_time_ns = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
         let current_slot = expected_current_slot(current_time_ns.try_into().unwrap(), genesis_time);
 
-        let result = verify_generic_update(update, current_slot, &mut self.light_client_store, genesis_root, forks);
+        let result = verify_generic_update(
+            update,
+            current_slot,
+            &mut self.light_client_store,
+            genesis_root,
+            forks,
+        );
         if result.is_ok() {
             apply_generic_update(&mut self.light_client_store, update);
         } else {

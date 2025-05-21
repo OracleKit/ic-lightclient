@@ -5,16 +5,16 @@ use eyre::Result;
 use ssz_types::BitVector;
 use tree_hash::TreeHash;
 
-use crate::helios::spec::ConsensusSpec;
 use crate::helios::errors::ConsensusError;
 use crate::helios::proof::{
     is_current_committee_proof_valid, is_execution_payload_proof_valid, is_finality_proof_valid,
     is_next_committee_proof_valid,
 };
+use crate::helios::spec::ConsensusSpec;
 use crate::helios::types::bls::{PublicKey, Signature};
 use crate::helios::types::{
-    BeaconBlockHeader, Bootstrap, FinalityUpdate, Forks, GenericUpdate,
-    LightClientHeader, LightClientStore, OptimisticUpdate, Update,
+    BeaconBlockHeader, Bootstrap, FinalityUpdate, Forks, GenericUpdate, LightClientHeader,
+    LightClientStore, OptimisticUpdate, Update,
 };
 use crate::helios::utils::{
     calculate_fork_version, compute_committee_sign_root, compute_fork_data_root,
@@ -273,7 +273,10 @@ pub fn verify_generic_update<S: ConsensusSpec>(
         update_sig_period == store_period
     };
     if !valid_period {
-        println!("Err: update sig period: {}, store period: {}", update_sig_period, store_period);
+        println!(
+            "Err: update sig period: {}, store period: {}",
+            update_sig_period, store_period
+        );
         return Err(ConsensusError::InvalidPeriod.into());
     }
 
@@ -497,8 +500,7 @@ fn is_valid_header<S: ConsensusSpec>(header: &LightClientHeader, _: &Forks) -> b
     let execution = &header.execution;
     let execution_branch = &header.execution_branch;
 
-    let proof_valid =
-        is_execution_payload_proof_valid(&header.beacon, execution, execution_branch);
+    let proof_valid = is_execution_payload_proof_valid(&header.beacon, execution, execution_branch);
 
     proof_valid
 }

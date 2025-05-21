@@ -1,5 +1,5 @@
 mod consensus;
 mod execution;
 
-pub use execution::ExecutionApi;
 pub use consensus::ConsensusApi;
+pub use execution::ExecutionApi;

@@ -1,5 +1,5 @@
-use ic_cdk::api::{canister_balance128, time};
 use candid::CandidType;
+use ic_cdk::api::{canister_balance128, time};
 use serde::Deserialize;
 
 #[derive(CandidType, Deserialize)]
@@ -26,12 +26,9 @@ pub fn serve_metrics() -> HttpResponse {
     let body = vec![
         "# HELP cycle_balance Current cycle balance of canister".to_string(),
         "# TYPE cycle_balance counter".to_string(),
-        format!(
-            "cycle_balance {} {}",
-            canister_balance128(),
-            timestamp
-        )
-    ].join("\n");
+        format!("cycle_balance {} {}", canister_balance128(), timestamp),
+    ]
+    .join("\n");
 
     let body = body.as_bytes().to_vec();
 
@@ -40,8 +37,8 @@ pub fn serve_metrics() -> HttpResponse {
         headers: vec![
             HeaderField("Content-Length".to_string(), format!("{}", body.len())),
             HeaderField("Cache-Control".to_string(), format!("max-age={}", 120)),
-            HeaderField("Content-Type".to_string(), "text/plain".to_string())
+            HeaderField("Content-Type".to_string(), "text/plain".to_string()),
         ],
-        body: body
+        body: body,
     }
 }

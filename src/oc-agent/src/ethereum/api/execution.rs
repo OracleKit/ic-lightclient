@@ -1,8 +1,8 @@
-use std::sync::OnceLock;
-use alloy_primitives::U256;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use crate::http::HttpClient;
+use alloy_primitives::U256;
 use alloy_rpc_types_eth::Header;
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use std::sync::OnceLock;
 
 static INNER: OnceLock<Inner> = OnceLock::new();
 
@@ -53,10 +53,8 @@ impl ExecutionApi {
             .await
             .expect("Failed to send request");
 
-        let response: JsonRpcResponseWrapper<Response> = response
-            .json()
-            .await
-            .expect("Failed to parse response");
+        let response: JsonRpcResponseWrapper<Response> =
+            response.json().await.expect("Failed to parse response");
 
         response.result
     }
@@ -65,13 +63,7 @@ impl ExecutionApi {
         Self::request("eth_blockNumber", ()).await
     }
 
-    pub async fn block_header_by_number(
-        block_number: U256,
-    ) -> Header {
-        Self::request(
-            "eth_getBlockByNumber",
-            (block_number, false),
-        )
-        .await
+    pub async fn block_header_by_number(block_number: U256) -> Header {
+        Self::request("eth_getBlockByNumber", (block_number, false)).await
     }
 }

@@ -1,8 +1,11 @@
-use std::sync::OnceLock;
-use alloy_primitives::B256;
-use serde::{de::DeserializeOwned, Deserialize};
 use crate::http::HttpClient;
-use ic_lightclient_ethereum::helios::{spec::MainnetConsensusSpec, types::{Bootstrap, FinalityUpdate, OptimisticUpdate, Update}};
+use alloy_primitives::B256;
+use ic_lightclient_ethereum::helios::{
+    spec::MainnetConsensusSpec,
+    types::{Bootstrap, FinalityUpdate, OptimisticUpdate, Update},
+};
+use serde::{de::DeserializeOwned, Deserialize};
+use std::sync::OnceLock;
 
 static INNER: OnceLock<Inner> = OnceLock::new();
 
@@ -14,7 +17,7 @@ struct Inner {
 #[derive(Debug, Deserialize)]
 struct ResponseWrapper<T> {
     version: String,
-    data: T
+    data: T,
 }
 
 pub struct ConsensusApi;
@@ -24,10 +27,7 @@ impl ConsensusApi {
         INNER.set(Inner { url }).unwrap();
     }
 
-    async fn request<Response: DeserializeOwned>(
-        path: &str,
-        query: &[(&str, &str)],
-    ) -> Response {
+    async fn request<Response: DeserializeOwned>(path: &str, query: &[(&str, &str)]) -> Response {
         let inner = INNER.get().unwrap();
         let url = &inner.url;
         let url = format!("{}{}", url, path);
@@ -46,8 +46,9 @@ impl ConsensusApi {
     pub async fn bootstrap(block_root: B256) -> Bootstrap<MainnetConsensusSpec> {
         let response: ResponseWrapper<Bootstrap<MainnetConsensusSpec>> = Self::request(
             &format!("/eth/v1/beacon/light_client/bootstrap/{}", block_root),
-            &[]
-        ).await;
+            &[],
+        )
+        .await;
 
         response.data
     }
@@ -55,28 +56,26 @@ impl ConsensusApi {
     pub async fn updates(start_period: u64, count: u64) -> Vec<Update<MainnetConsensusSpec>> {
         let response: Vec<ResponseWrapper<Update<MainnetConsensusSpec>>> = Self::request(
             "/eth/v1/beacon/light_client/updates",
-            &[("start_period", &start_period.to_string()), ("count", &count.to_string())]
-        ).await;
+            &[
+                ("start_period", &start_period.to_string()),
+                ("count", &count.to_string()),
+            ],
+        )
+        .await;
 
-        response.into_iter()
-            .map(|r| r.data)
-            .collect()
+        response.into_iter().map(|r| r.data).collect()
     }
 
     pub async fn optimistic_update() -> OptimisticUpdate<MainnetConsensusSpec> {
-        let response: ResponseWrapper<OptimisticUpdate<MainnetConsensusSpec>> = Self::request(
-            "/eth/v1/beacon/light_client/optimistic_update",
-            &[]
-        ).await;
+        let response: ResponseWrapper<OptimisticUpdate<MainnetConsensusSpec>> =
+            Self::request("/eth/v1/beacon/light_client/optimistic_update", &[]).await;
 
         response.data
     }
 
     pub async fn finality_update() -> FinalityUpdate<MainnetConsensusSpec> {
-        let response: ResponseWrapper<FinalityUpdate<MainnetConsensusSpec>> = Self::request(
-            "/eth/v1/beacon/light_client/finality_update",
-            &[]
-        ).await;
+        let response: ResponseWrapper<FinalityUpdate<MainnetConsensusSpec>> =
+            Self::request("/eth/v1/beacon/light_client/finality_update", &[]).await;
 
         response.data
     }

@@ -1,13 +1,13 @@
 mod chain;
-mod ethereum;
-mod state;
 mod config;
+mod ethereum;
 mod metrics;
+mod state;
 
+pub use crate::chain::ChainInterface;
 use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use metrics::{serve_metrics, HttpRequest, HttpResponse};
 use state::GlobalState;
-pub use crate::chain::ChainInterface;
 
 #[ic_cdk::query]
 fn get_latest_block_hash() -> String {
@@ -23,7 +23,7 @@ fn get_state() -> CanisterState {
 
     CanisterState {
         version: 1,
-        ethereum: ethereum_state
+        ethereum: ethereum_state,
     }
 }
 
@@ -33,7 +33,7 @@ fn update_state(updates: CanisterUpdates) {
 
     let chains = GlobalState::chains();
     chains.borrow_mut().ethereum.update_state(updates.ethereum);
-    
+
     let end = ic_cdk::api::performance_counter(0);
     let cycles = ic_cdk::api::canister_balance();
     ic_cdk::println!("Instructions: {}, cycles: {}", end - start, cycles);

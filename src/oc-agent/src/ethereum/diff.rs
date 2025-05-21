@@ -1,29 +1,30 @@
-use ic_lightclient_ethereum::{helios::{spec::ConsensusSpec, types::{Bootstrap, LightClientStore}}, payload::{LightClientStatePayload, LightClientUpdatePayload, UpdatePayload}};
+use ic_lightclient_ethereum::{
+    helios::{
+        spec::ConsensusSpec,
+        types::{Bootstrap, LightClientStore},
+    },
+    payload::{LightClientStatePayload, LightClientUpdatePayload, UpdatePayload},
+};
 
 pub struct EthereumStateDiff<S: ConsensusSpec> {
-    bootstrap: Option<Bootstrap<S>>
+    bootstrap: Option<Bootstrap<S>>,
 }
 
 impl<S: ConsensusSpec> Default for EthereumStateDiff<S> {
     fn default() -> Self {
-        Self {
-            bootstrap: None
-        }
+        Self { bootstrap: None }
     }
 }
 
 impl<S: ConsensusSpec> EthereumStateDiff<S> {
-    pub fn add_bootstrap(
-        &mut self,
-        bootstrap: Bootstrap<S>
-    ) {
+    pub fn add_bootstrap(&mut self, bootstrap: Bootstrap<S>) {
         self.bootstrap = Some(bootstrap);
     }
 
     pub fn get_diff_updates(
         &self,
         canister_state: &LightClientStatePayload<S>,
-        store: &LightClientStore<S>
+        store: &LightClientStore<S>,
     ) -> Vec<LightClientUpdatePayload<S>> {
         match &canister_state {
             LightClientStatePayload::Bootstrap(_state) => {
@@ -46,22 +47,23 @@ impl<S: ConsensusSpec> EthereumStateDiff<S> {
 
     fn get_diff_updates_for_bootstrap(
         &self,
-        store: &LightClientStore<S>
+        store: &LightClientStore<S>,
     ) -> Vec<LightClientUpdatePayload<S>> {
         let mut updates = vec![];
 
-        updates.push(LightClientUpdatePayload::Bootstrap(self.bootstrap.as_ref().expect("Bootstrap update not found").clone()));
-        updates.push(
-            LightClientUpdatePayload::Update(
-                UpdatePayload {
-                    optimistic_header: Some(store.optimistic_header.clone()),
-                    finalized_header: Some(store.finalized_header.clone()),
-                    current_sync_committee: Some(store.current_sync_committee.clone()),
-                    next_sync_committee: Some(store.next_sync_committee.clone()),
-                    best_valid_update: Some(store.best_valid_update.clone())
-                }
-            )
-        );
+        updates.push(LightClientUpdatePayload::Bootstrap(
+            self.bootstrap
+                .as_ref()
+                .expect("Bootstrap update not found")
+                .clone(),
+        ));
+        updates.push(LightClientUpdatePayload::Update(UpdatePayload {
+            optimistic_header: Some(store.optimistic_header.clone()),
+            finalized_header: Some(store.finalized_header.clone()),
+            current_sync_committee: Some(store.current_sync_committee.clone()),
+            next_sync_committee: Some(store.next_sync_committee.clone()),
+            best_valid_update: Some(store.best_valid_update.clone()),
+        }));
 
         updates
     }
@@ -69,11 +71,11 @@ impl<S: ConsensusSpec> EthereumStateDiff<S> {
     fn get_diff_updates_for_active(
         &self,
         canister_store: &LightClientStore<S>,
-        store: &LightClientStore<S>
+        store: &LightClientStore<S>,
     ) -> Vec<LightClientUpdatePayload<S>> {
         let mut update = UpdatePayload::default();
         let mut update_required = false;
-        
+
         if store.optimistic_header != canister_store.optimistic_header {
             update.optimistic_header = Some(store.optimistic_header.clone());
             update_required = true;
