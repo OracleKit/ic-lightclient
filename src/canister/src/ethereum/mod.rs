@@ -1,13 +1,26 @@
 use std::rc::Rc;
 
 use crate::{config::ConfigManager, ChainInterface};
-use ic_lightclient_ethereum::{helios::{consensus::{apply_bootstrap, apply_finality_update, apply_optimistic_update, apply_update, verify_bootstrap}, spec::MainnetConsensusSpec, types::LightClientStore}, payload::{apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
+use ic_lightclient_ethereum::{
+    helios::{
+        consensus::{
+            apply_bootstrap, apply_finality_update, apply_optimistic_update, apply_update,
+            verify_bootstrap,
+        },
+        spec::MainnetConsensusSpec,
+        types::LightClientStore,
+    },
+    payload::{
+        apply_update_payload, LightClientStateActive, LightClientStateBootstrap,
+        LightClientStatePayload, LightClientUpdatePayload,
+    },
+};
 use ic_lightclient_types::{ChainState, ChainUpdates, Config};
 
 pub struct EthereumChain {
     is_bootstrapped: bool,
     store: LightClientStore<MainnetConsensusSpec>,
-    config: Rc<Config>
+    config: Rc<Config>,
 }
 
 impl Default for EthereumChain {
@@ -15,7 +28,7 @@ impl Default for EthereumChain {
         Self {
             is_bootstrapped: false,
             store: LightClientStore::<MainnetConsensusSpec>::default(),
-            config: ConfigManager::get()
+            config: ConfigManager::get(),
         }
     }
 }
@@ -24,20 +37,32 @@ impl ChainInterface for EthereumChain {
     fn get_state(&self) -> ChainState {
         let state = if !self.is_bootstrapped {
             let checkpoint_root = self.config.ethereum.checkpoint_block_root.clone();
-            let state = LightClientStateBootstrap { block_hash: checkpoint_root };
-            let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Bootstrap(state)).expect("Failed to serialize state");
-            
+            let state = LightClientStateBootstrap {
+                block_hash: checkpoint_root,
+            };
+            let state = serde_json::to_vec(
+                &LightClientStatePayload::<MainnetConsensusSpec>::Bootstrap(state),
+            )
+            .expect("Failed to serialize state");
+
             state
         } else {
             let state = LightClientStateActive {
-                store: self.store.clone()
+                store: self.store.clone(),
             };
-            let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Active(state)).expect("Failed to serialize state");
-            
+            let state = serde_json::to_vec(
+                &LightClientStatePayload::<MainnetConsensusSpec>::Active(state),
+            )
+            .expect("Failed to serialize state");
+
             state
         };
 
-        ChainState { version: 1, state, tasks: vec![] }
+        ChainState {
+            version: 1,
+            state,
+            tasks: vec![],
+        }
     }
 
     fn are_updates_valid(&self, updates: ChainUpdates) -> bool {
@@ -51,17 +76,18 @@ impl ChainInterface for EthereumChain {
 
         // TODO: Add timer checks
 
-        let updates: Vec<LightClientUpdatePayload<MainnetConsensusSpec>> = updates.into_iter()
+        let updates: Vec<LightClientUpdatePayload<MainnetConsensusSpec>> = updates
+            .into_iter()
             .map(|update| {
-                let update: LightClientUpdatePayload<MainnetConsensusSpec> = serde_json::from_slice(&update)
-                    .expect("Failed to parse update");
+                let update: LightClientUpdatePayload<MainnetConsensusSpec> =
+                    serde_json::from_slice(&update).expect("Failed to parse update");
                 update
             })
             .collect();
 
         // TODO: Add check for conflicts
 
-        for update in updates {           
+        for update in updates {
             match update {
                 LightClientUpdatePayload::Bootstrap(bootstrap) => {
                     if self.is_bootstrapped {
@@ -89,7 +115,11 @@ impl EthereumChain {
         if !self.is_bootstrapped {
             self.config.ethereum.checkpoint_block_root.to_string()
         } else {
-            format!("Slot: {}, hash: {}", self.store.optimistic_header.beacon.slot, self.store.optimistic_header.beacon.state_root.to_string())
+            format!(
+                "Slot: {}, hash: {}",
+                self.store.optimistic_header.beacon.slot,
+                self.store.optimistic_header.beacon.state_root.to_string()
+            )
         }
     }
 }

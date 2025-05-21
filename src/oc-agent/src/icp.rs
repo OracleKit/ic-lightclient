@@ -1,7 +1,7 @@
 use ic_agent::{export::Principal, Agent};
+use ic_lightclient_types::ICPConfig;
 use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use ic_utils::{call::SyncCall, Canister};
-use ic_lightclient_types::ICPConfig;
 use std::sync::OnceLock;
 
 static INNER: OnceLock<Inner> = OnceLock::new();
@@ -22,7 +22,12 @@ impl ICP {
             .expect("Failed to create agent");
 
         agent.fetch_root_key().await.unwrap();
-        INNER.set(Inner { agent, canister_id: config.canister_id.clone() }).unwrap();
+        INNER
+            .set(Inner {
+                agent,
+                canister_id: config.canister_id.clone(),
+            })
+            .unwrap();
     }
 
     fn canister<'a>() -> Canister<'a> {

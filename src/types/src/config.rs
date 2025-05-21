@@ -1,6 +1,6 @@
-use serde::Deserialize;
-use ic_principal::Principal;
 use ic_lightclient_ethereum::config::EthereumConfig;
+use ic_principal::Principal;
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct ICPConfig {

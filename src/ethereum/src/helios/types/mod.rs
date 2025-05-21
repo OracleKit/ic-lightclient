@@ -1,19 +1,19 @@
-use alloy_primitives::{B256, Address, U256, FixedBytes};
+use crate::helios::spec::ConsensusSpec;
+use alloy_primitives::{Address, FixedBytes, B256, U256};
 use serde::{Deserialize, Serialize};
 use ssz_derive::{Decode, Encode};
-use tree_hash_derive::TreeHash;
-use ssz_types::{FixedVector, BitVector};
+use ssz_types::{BitVector, FixedVector};
 use superstruct::superstruct;
-use crate::helios::spec::ConsensusSpec;
+use tree_hash_derive::TreeHash;
 
 use self::{
+    bls::{PublicKey, Signature},
     bytes::{ByteList, ByteVector},
-    bls::{PublicKey, Signature}
 };
 
-mod serde_utils;
-mod bytes;
 pub mod bls;
+mod bytes;
+mod serde_utils;
 
 pub type LogsBloom = ByteVector<typenum::U256>;
 
@@ -25,7 +25,7 @@ pub struct LightClientStore<S: ConsensusSpec> {
     pub optimistic_header: LightClientHeader,
     pub previous_max_active_participants: u64,
     pub current_max_active_participants: u64,
-    pub best_valid_update: Option<GenericUpdate<S>>,  
+    pub best_valid_update: Option<GenericUpdate<S>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Encode, Decode, TreeHash, Clone, PartialEq)]
@@ -118,7 +118,10 @@ impl<S: ConsensusSpec> Bootstrap<S> {
 pub struct Update<S: ConsensusSpec> {
     pub attested_header: LightClientHeader,
     pub next_sync_committee: SyncCommittee<S>,
-    #[superstruct(only(Deneb), partial_getter(rename = "next_sync_committee_branch_deneb"))]
+    #[superstruct(
+        only(Deneb),
+        partial_getter(rename = "next_sync_committee_branch_deneb")
+    )]
     pub next_sync_committee_branch: FixedVector<B256, typenum::U5>,
     #[superstruct(
         only(Electra),
@@ -184,7 +187,7 @@ impl<S: ConsensusSpec> FinalityUpdate<S> {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Decode,)]
+#[derive(Serialize, Deserialize, Debug, Clone, Decode)]
 pub struct OptimisticUpdate<S: ConsensusSpec> {
     pub attested_header: LightClientHeader,
     pub sync_aggregate: SyncAggregate<S>,
@@ -245,7 +248,9 @@ impl<S: ConsensusSpec> From<&Update<S>> for GenericUpdate<S> {
             sync_aggregate: update.sync_aggregate().clone(),
             signature_slot: *update.signature_slot(),
             next_sync_committee: default_to_none(update.next_sync_committee().clone()),
-            next_sync_committee_branch: default_branch_to_none(&update.next_sync_committee_branch()),
+            next_sync_committee_branch: default_branch_to_none(
+                &update.next_sync_committee_branch(),
+            ),
             finalized_header: default_header_to_none(update.finalized_header().clone()),
             finality_branch: default_branch_to_none(&update.finality_branch()),
         }
@@ -299,8 +304,9 @@ fn default_branch_to_none(value: &[B256]) -> Option<Vec<B256>> {
 }
 
 fn default_header_to_none(value: LightClientHeader) -> Option<LightClientHeader> {
-    if value.beacon == BeaconBlockHeader::default() &&
-       value.execution == ExecutionPayloadHeader::default() {
+    if value.beacon == BeaconBlockHeader::default()
+        && value.execution == ExecutionPayloadHeader::default()
+    {
         None
     } else {
         Some(value)

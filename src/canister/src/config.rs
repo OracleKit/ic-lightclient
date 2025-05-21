@@ -1,7 +1,7 @@
-use std::rc::Rc;
-use ic_lightclient_types::{Config, ICPConfig};
 use ic_lightclient_ethereum::config::mainnet;
+use ic_lightclient_types::{Config, ICPConfig};
 use std::cell::LazyCell;
+use std::rc::Rc;
 
 thread_local! {
     static CONFIG: LazyCell<Rc<Config>> = LazyCell::new(|| {

@@ -1,5 +1,5 @@
-use std::{cell::RefCell, rc::Rc};
 use crate::ethereum::EthereumChain;
+use std::{cell::RefCell, rc::Rc};
 
 thread_local! {
     static CHAINS: Rc<RefCell<ChainState>> = Rc::default();
