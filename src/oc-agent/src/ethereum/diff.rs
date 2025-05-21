@@ -72,27 +72,37 @@ impl<S: ConsensusSpec> EthereumStateDiff<S> {
         store: &LightClientStore<S>
     ) -> Vec<LightClientUpdatePayload<S>> {
         let mut update = UpdatePayload::default();
+        let mut update_required = false;
         
         if store.optimistic_header != canister_store.optimistic_header {
             update.optimistic_header = Some(store.optimistic_header.clone());
+            update_required = true;
         }
 
         if store.finalized_header != canister_store.finalized_header {
             update.finalized_header = Some(store.finalized_header.clone());
+            update_required = true;
         }
 
         if store.best_valid_update != canister_store.best_valid_update {
             update.best_valid_update = Some(store.best_valid_update.clone());
+            update_required = true;
         }
 
         if store.current_sync_committee != canister_store.current_sync_committee {
             update.current_sync_committee = Some(store.current_sync_committee.clone());
+            update_required = true;
         }
 
         if store.next_sync_committee != canister_store.next_sync_committee {
             update.next_sync_committee = Some(store.next_sync_committee.clone());
+            update_required = true;
         }
 
-        vec![LightClientUpdatePayload::Update(update)]
+        if update_required {
+            vec![LightClientUpdatePayload::Update(update)]
+        } else {
+            vec![]
+        }
     }
 }
