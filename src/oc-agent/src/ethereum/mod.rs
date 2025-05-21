@@ -19,7 +19,7 @@ pub struct EthereumChain {
     genesis_validator_root: B256,
     forks: Forks,
     last_updated_time_sec: u64,
-    state_differ: EthereumStateDiff,
+    state_differ: EthereumStateDiff<MainnetConsensusSpec>,
 }
 
 impl Chain for EthereumChain {
@@ -50,7 +50,7 @@ impl Chain for EthereumChain {
         let canister_state: LightClientStatePayload<MainnetConsensusSpec> = serde_json::from_slice(&state.state).unwrap();
         // check for next sync committee
 
-        let updates = self.state_differ.get_diff_updates(&canister_state);
+        let updates = self.state_differ.get_diff_updates(&canister_state, &self.light_client_store);
         let serialized_updates: Vec<Vec<u8>> = updates.into_iter().map(|update| serde_json::to_vec(&update).unwrap()).collect();
 
         if serialized_updates.len() > 0 { Some(ChainUpdates { version: 1, updates: serialized_updates }) }
@@ -82,7 +82,6 @@ impl EthereumChain {
 
             if update.len() == 1 {
                 self.verify_and_apply_update(&update[0]);
-                self.state_differ.add_update_with_sync_committee(update[0].clone());
             }
         } else if finalized_period + 1 < current_period {
             self.sync(current_period, finalized_period).await;
@@ -119,7 +118,6 @@ impl EthereumChain {
 
         for update in updates {
             self.verify_and_apply_update(&update);
-            self.state_differ.add_update_with_sync_committee(update);
         }
 
         self.sync_head().await;
@@ -134,8 +132,6 @@ impl EthereumChain {
         
         self.verify_and_apply_optimistic_update(&optimistic_update);
         self.verify_and_apply_finality_update(&finality_update);
-
-        self.state_differ.add_update_without_sync_committee(optimistic_update, finality_update);
     }
 
     fn verify_and_apply_finality_update(

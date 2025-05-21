@@ -1,13 +1,12 @@
 use std::rc::Rc;
 
 use crate::{config::ConfigManager, ChainInterface};
-use ic_lightclient_ethereum::{helios::{consensus::{apply_bootstrap, apply_finality_update, apply_optimistic_update, apply_update, verify_bootstrap}, spec::MainnetConsensusSpec, types::LightClientStore}, payload::{LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
+use ic_lightclient_ethereum::{helios::{consensus::{apply_bootstrap, apply_finality_update, apply_optimistic_update, apply_update, verify_bootstrap}, spec::MainnetConsensusSpec, types::LightClientStore}, payload::{apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
 use ic_lightclient_types::{ChainState, ChainUpdates, Config};
 
 pub struct EthereumChain {
     is_bootstrapped: bool,
     store: LightClientStore<MainnetConsensusSpec>,
-    awaiting_challenge: Vec<LightClientUpdatePayload<MainnetConsensusSpec>>,
     config: Rc<Config>
 }
 
@@ -16,7 +15,6 @@ impl Default for EthereumChain {
         Self {
             is_bootstrapped: false,
             store: LightClientStore::<MainnetConsensusSpec>::default(),
-            awaiting_challenge: vec![],
             config: ConfigManager::get()
         }
     }
@@ -31,15 +29,8 @@ impl ChainInterface for EthereumChain {
             
             state
         } else {
-            let optimistic_header = self.store.optimistic_header.clone();
-            let finalized_header = self.store.finalized_header.clone();
-            let has_next_sync_committee = self.store.next_sync_committee.is_some();
-            let awaiting_challenge = self.awaiting_challenge.clone();
             let state = LightClientStateActive {
-                optimistic_header,
-                finalized_header,
-                has_next_sync_committee,
-                awaiting_challenge,
+                store: self.store.clone()
             };
             let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Active(state)).expect("Failed to serialize state");
             
@@ -70,23 +61,6 @@ impl ChainInterface for EthereumChain {
 
         // TODO: Add check for conflicts
 
-        for update in self.awaiting_challenge.iter() {
-            match update {
-                LightClientUpdatePayload::FinalityUpdate(update) => {
-                    apply_finality_update(&mut self.store, &update.update);
-                }
-                LightClientUpdatePayload::OptimisticUpdate(update) => {
-                    apply_optimistic_update(&mut self.store, &update.update);
-                }
-                LightClientUpdatePayload::Update(update) => {
-                    apply_update(&mut self.store, &update.update);
-                }
-                _ => unreachable!()
-            }
-        }
-
-        self.awaiting_challenge.clear();
-
         for update in updates {           
             match update {
                 LightClientUpdatePayload::Bootstrap(bootstrap) => {
@@ -94,7 +68,6 @@ impl ChainInterface for EthereumChain {
                         panic!("Received bootstrap update after being bootstrapped");
                     }
 
-                    let bootstrap = bootstrap.bootstrap;
                     let checkpoint_root = config.checkpoint_block_root.clone();
                     let forks = &config.forks;
 
@@ -103,8 +76,8 @@ impl ChainInterface for EthereumChain {
                     self.is_bootstrapped = true;
                 }
 
-                _ => {
-                    self.awaiting_challenge.push(update);
+                LightClientUpdatePayload::Update(update) => {
+                    apply_update_payload(&mut self.store, update);
                 }
             }
         }

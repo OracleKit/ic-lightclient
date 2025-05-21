@@ -41,7 +41,7 @@ pub fn mainnet() -> EthereumConfig {
                 fork_version: fixed_bytes!("04000000")
             },
             electra: Fork {
-                epoch: 18_446_744_073_709,
+                epoch: 364032,
                 fork_version: fixed_bytes!("05000000")
             }
         }
