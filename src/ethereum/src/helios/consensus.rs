@@ -26,19 +26,19 @@ pub fn verify_bootstrap<S: ConsensusSpec>(
     checkpoint: B256,
     forks: &Forks,
 ) -> Result<()> {
-    if !is_valid_header::<S>(&bootstrap.header, forks) {
+    if !is_valid_header::<S>(&bootstrap.header(), forks) {
         return Err(ConsensusError::InvalidExecutionPayloadProof.into());
     }
 
     let committee_valid = is_current_committee_proof_valid(
-        &bootstrap.header.beacon,
-        &bootstrap.current_sync_committee,
-        &bootstrap.current_sync_committee_branch,
-        bootstrap.header.beacon.slot / S::slots_per_epoch(),
+        &bootstrap.header().beacon,
+        &bootstrap.current_sync_committee(),
+        &bootstrap.current_sync_committee_branch(),
+        bootstrap.header().beacon.slot / S::slots_per_epoch(),
         forks,
     );
 
-    let header_hash = bootstrap.header.beacon.tree_hash_root();
+    let header_hash = bootstrap.header().beacon.tree_hash_root();
     let header_valid = header_hash == checkpoint;
 
     if !header_valid {
@@ -90,10 +90,10 @@ pub fn apply_bootstrap<S: ConsensusSpec>(
     bootstrap: &Bootstrap<S>,
 ) {
     *store = LightClientStore {
-        finalized_header: bootstrap.header.clone(),
-        current_sync_committee: bootstrap.current_sync_committee.clone(),
+        finalized_header: bootstrap.header().clone(),
+        current_sync_committee: bootstrap.current_sync_committee().clone(),
         next_sync_committee: None,
-        optimistic_header: bootstrap.header.clone(),
+        optimistic_header: bootstrap.header().clone(),
         previous_max_active_participants: 0,
         current_max_active_participants: 0,
         best_valid_update: None,
@@ -273,6 +273,7 @@ pub fn verify_generic_update<S: ConsensusSpec>(
         update_sig_period == store_period
     };
     if !valid_period {
+        println!("Err: update sig period: {}, store period: {}", update_sig_period, store_period);
         return Err(ConsensusError::InvalidPeriod.into());
     }
 
