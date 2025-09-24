@@ -33,10 +33,7 @@ impl ExecutionApi {
         INNER.set(Inner { url }).unwrap();
     }
 
-    async fn request<Request: Serialize, Response: DeserializeOwned>(
-        method: &str,
-        request: Request,
-    ) -> Response {
+    async fn request<Request: Serialize, Response: DeserializeOwned>(method: &str, request: Request) -> Response {
         let inner = INNER.get().unwrap();
         let url = &inner.url;
 
@@ -53,8 +50,7 @@ impl ExecutionApi {
             .await
             .expect("Failed to send request");
 
-        let response: JsonRpcResponseWrapper<Response> =
-            response.json().await.expect("Failed to parse response");
+        let response: JsonRpcResponseWrapper<Response> = response.json().await.expect("Failed to parse response");
 
         response.result
     }

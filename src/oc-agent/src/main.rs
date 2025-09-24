@@ -1,29 +1,31 @@
 mod chain;
+mod cli;
 mod config;
 mod ethereum;
 mod http;
 mod icp;
 mod util;
 
+use anyhow::Result;
 use chain::{Chain, ChainManager};
-use config::load_config;
 use ic_lightclient_types::CanisterUpdates;
 use icp::ICP;
 use std::time::Duration;
 use tokio::time::sleep;
 
+use crate::{cli::Cli, config::Config};
+
 #[tokio::main]
-async fn main() {
-    let config = load_config();
-    ICP::init(config.icp).await;
+async fn main() -> Result<()> {
+    Cli::init()?;
+
+    let config_file = Cli::config_file();
+    Config::init(&config_file)?;
+
+    ICP::init().await;
 
     let chain_manager = ChainManager::new();
-    chain_manager
-        .ethereum
-        .try_lock()
-        .unwrap()
-        .init(config.ethereum)
-        .await;
+    chain_manager.ethereum.try_lock().unwrap().init().await;
 
     loop {
         let state = ICP::get_canister_state().await;
@@ -36,14 +38,12 @@ async fn main() {
             let updates = ethereum.get_updates(state.ethereum).await;
 
             if let Some(updates) = updates {
-                ICP::update_canister_state(CanisterUpdates {
-                    version: 1,
-                    ethereum: updates,
-                })
-                .await;
+                ICP::update_canister_state(CanisterUpdates { version: 1, ethereum: updates }).await;
             }
         });
 
         sleep(Duration::from_secs(1)).await;
     }
+
+    Ok(())
 }

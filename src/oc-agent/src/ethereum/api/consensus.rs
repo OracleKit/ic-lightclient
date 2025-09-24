@@ -44,11 +44,8 @@ impl ConsensusApi {
     }
 
     pub async fn bootstrap(block_root: B256) -> Bootstrap<MainnetConsensusSpec> {
-        let response: ResponseWrapper<Bootstrap<MainnetConsensusSpec>> = Self::request(
-            &format!("/eth/v1/beacon/light_client/bootstrap/{}", block_root),
-            &[],
-        )
-        .await;
+        let response: ResponseWrapper<Bootstrap<MainnetConsensusSpec>> =
+            Self::request(&format!("/eth/v1/beacon/light_client/bootstrap/{}", block_root), &[]).await;
 
         response.data
     }
@@ -56,10 +53,7 @@ impl ConsensusApi {
     pub async fn updates(start_period: u64, count: u64) -> Vec<Update<MainnetConsensusSpec>> {
         let response: Vec<ResponseWrapper<Update<MainnetConsensusSpec>>> = Self::request(
             "/eth/v1/beacon/light_client/updates",
-            &[
-                ("start_period", &start_period.to_string()),
-                ("count", &count.to_string()),
-            ],
+            &[("start_period", &start_period.to_string()), ("count", &count.to_string())],
         )
         .await;
 
