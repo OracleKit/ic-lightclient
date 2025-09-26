@@ -21,6 +21,18 @@ class ProcessWrapper {
     }
 }
 
+// helps bypass jest log interception and 
+// have pretty logs of the process manager.
+class CustomConsole {
+    static log(...args: any[]) {
+        process.stdout.write(args.join(" ") + "\n");
+    }
+
+    static error(...args: any[]) {
+        process.stderr.write(args.join(" ") + "\n");
+    }
+}
+
 class ProcessManagerClass {
     private _children: ProcessWrapper[] = [];
     private readonly _logPrefix: string = "[ProcessManager]";
@@ -35,12 +47,12 @@ class ProcessManagerClass {
         this._terminationOngoing = false;
 
         process.on('uncaughtException', (err, origin) => {
-            console.error("Uncaught exception:", err, origin);
+            CustomConsole.error("Uncaught exception:", err, origin);
             return this.terminate(true);
         });
 
         process.on('unhandledRejection', (reason, promise) => {
-            console.error("Uncaught rejection:", reason, promise);
+            CustomConsole.error("Uncaught rejection:", reason, promise);
             return this.terminate(true);
         });
 
@@ -57,17 +69,17 @@ class ProcessManagerClass {
         child.stderr.on('data', this._pipeOutput(command));
         
         child.on('spawn', () => {
-            console.log(`${this._logPrefix} Running: ${command} ${args.join(' ')}`);
+            CustomConsole.log(`${this._logPrefix} Running: ${command} ${args.join(' ')}`);
             wrappedChild.state = ProcessState.SPAWNED;
         });
 
         child.on('error', (e: Error) => {
-            console.log(`${this._logPrefix} ${command} errored out: ${e}`);
+            CustomConsole.log(`${this._logPrefix} ${command} errored out: ${e}`);
             wrappedChild.isError = true;
         });
 
         child.on('exit', (code: number, signal) => {
-            console.log(`${this._logPrefix} ${command} exited with code: ${code} ${signal}`);
+            CustomConsole.log(`${this._logPrefix} ${command} exited with code: ${code} ${signal}`);
             wrappedChild.state = ProcessState.EXITED;
         });
 
@@ -82,7 +94,7 @@ class ProcessManagerClass {
         if ( this._terminationOngoing ) return;
         this._terminationOngoing = true;
 
-        console.log(`${this._logPrefix} Running process termination.`);
+        CustomConsole.log(`${this._logPrefix} Running process termination.`);
 
         let targetProcs = this._children.filter(p => p.state != ProcessState.EXITED);
         targetProcs.forEach(p => {
@@ -100,7 +112,7 @@ class ProcessManagerClass {
 
                 if ( targetProcs.length == 0 ) {
                     clearInterval(interval);
-                    console.log(`${this._logPrefix} Processes terminated.`);
+                    CustomConsole.log(`${this._logPrefix} Processes terminated.`);
                     resolve();
                 }
 
@@ -110,7 +122,7 @@ class ProcessManagerClass {
 
                 if ( retries == 2*MAX_RETRIES ) {
                     clearInterval(interval);
-                    console.log(`${this._logPrefix} ${targetProcs.length} could not be terminated.`);
+                    CustomConsole.log(`${this._logPrefix} ${targetProcs.length} could not be terminated.`);
                     resolve();
                 }
             }, STATE_UPDATE_CHECK_INTERVAL_DELAY);
@@ -132,7 +144,7 @@ class ProcessManagerClass {
                 const line = buffer + (chunkLines.shift() ?? '');
                 buffer = "";
 
-                console.log(`[${command}] ${line}`);
+                CustomConsole.log(`[${command}] ${line}`);
             }
 
             buffer += chunkLines.shift() ?? '';
