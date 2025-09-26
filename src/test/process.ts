@@ -1,5 +1,8 @@
 import { ChildProcess, spawn as childSpawn } from "child_process";
 
+const STATE_UPDATE_CHECK_INTERVAL_DELAY: number = 200; // in milliseconds
+const MAX_RETRIES = 25; // 25 * 200 = 5 secs
+
 enum ProcessState {
     INIT,
     SPAWNED,
@@ -31,24 +34,19 @@ class ProcessManagerClass {
         this._children = [];
         this._terminationOngoing = false;
 
-        process.on('uncaughtException', async (err, origin) => {
+        process.on('uncaughtException', (err, origin) => {
             console.error("Uncaught exception:", err, origin);
-            await this.terminate();
-            process.exit(1);
+            return this.terminate(true);
         });
 
-        process.on('unhandledRejection', async (reason, promise) => {
+        process.on('unhandledRejection', (reason, promise) => {
             console.error("Uncaught rejection:", reason, promise);
-            await this.terminate();
-            process.exit(1);
+            return this.terminate(true);
         });
 
-        process.on('beforeExit', async () => {
-            await this.terminate();
-        });
-
-        process.on('SIGINT', () => this.terminate());
-        process.on('SIGTERM', () => this.terminate());
+        process.on('beforeExit', () => this.terminate());
+        process.on('SIGINT', () => this.terminate(true));
+        process.on('SIGTERM', () => this.terminate(true));
     }
 
     registerProcess(command: string, args: string[]): number {
@@ -106,10 +104,16 @@ class ProcessManagerClass {
                     resolve();
                 }
 
-                if ( ++retries == 25 ) {
+                if ( ++retries == MAX_RETRIES ) {
                     targetProcs.forEach(p => p.process.kill('SIGKILL'));
                 }
-            }, 200);
+
+                if ( retries == 2*MAX_RETRIES ) {
+                    clearInterval(interval);
+                    console.log(`${this._logPrefix} ${targetProcs.length} could not be terminated.`);
+                    resolve();
+                }
+            }, STATE_UPDATE_CHECK_INTERVAL_DELAY);
         });
 
         if ( exit ) {
@@ -135,8 +139,6 @@ class ProcessManagerClass {
         }
     }
 }
-
-const STATE_UPDATE_CHECK_INTERVAL_DELAY: number = 200; // in milliseconds
 
 export function init() {
     ProcessManager.init();
@@ -183,7 +185,7 @@ export async function spawnSync(command: string, args: string[]): Promise<number
             if ( child.isError ) return reject();
             resolve(child.process.exitCode);
 
-        }, 200);
+        }, STATE_UPDATE_CHECK_INTERVAL_DELAY);
     });
 }
 
