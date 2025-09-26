@@ -91,44 +91,50 @@ class ProcessManagerClass {
     }
 
     async terminate(exit: boolean = false) {
-        if ( this._terminationOngoing ) return;
-        this._terminationOngoing = true;
+        try {
+            if ( this._terminationOngoing ) return;
+            this._terminationOngoing = true;
 
-        CustomConsole.log(`${this._logPrefix} Running process termination.`);
+            CustomConsole.log(`${this._logPrefix} Running process termination.`);
 
-        let targetProcs = this._children.filter(p => p.state != ProcessState.EXITED);
-        targetProcs.forEach(p => {
-            p.isError = false;
-            p.process.kill();
-        });
+            let targetProcs = this._children.filter(p => p.state != ProcessState.EXITED);
+            targetProcs.forEach(p => {
+                p.isError = false;
+                p.process.kill();
+            });
 
-        await new Promise<void>(resolve => {
-            let retries = 0;
+            await new Promise<void>(resolve => {
+                let retries = 0;
 
-            const interval = setInterval(() => {
-                targetProcs = targetProcs.filter(p => (
-                    p.state != ProcessState.EXITED && !p.isError
-                ));
+                const interval = setInterval(() => {
+                    targetProcs = targetProcs.filter(p => (
+                        p.state != ProcessState.EXITED && !p.isError
+                    ));
 
-                if ( targetProcs.length == 0 ) {
-                    clearInterval(interval);
-                    CustomConsole.log(`${this._logPrefix} Processes terminated.`);
-                    resolve();
-                }
+                    if ( targetProcs.length == 0 ) {
+                        clearInterval(interval);
+                        CustomConsole.log(`${this._logPrefix} Processes terminated.`);
+                        resolve();
+                    }
 
-                if ( ++retries == MAX_RETRIES ) {
-                    targetProcs.forEach(p => p.process.kill('SIGKILL'));
-                }
+                    if ( ++retries == MAX_RETRIES ) {
+                        targetProcs.forEach(p => p.process.kill('SIGKILL'));
+                    }
 
-                if ( retries == 2*MAX_RETRIES ) {
-                    clearInterval(interval);
-                    CustomConsole.log(`${this._logPrefix} ${targetProcs.length} could not be terminated.`);
-                    resolve();
-                }
-            }, STATE_UPDATE_CHECK_INTERVAL_DELAY);
-        });
+                    if ( retries == 2*MAX_RETRIES ) {
+                        clearInterval(interval);
+                        CustomConsole.log(`${this._logPrefix} ${targetProcs.length} could not be terminated.`);
+                        resolve();
+                    }
+                }, STATE_UPDATE_CHECK_INTERVAL_DELAY);
+            });
 
-        if ( exit ) {
+            if ( exit ) {
+                process.exit(1);
+            }
+        } catch (e) {
+            // safety check to prevent loops
+            CustomConsole.error(e);
             process.exit(1);
         }
     }
