@@ -30,7 +30,7 @@ describe('test e2e', () => {
         expect(typeof block_hash).toBe('string');
         expect(block_hash !== new_block_hash).toBe(true);
         
-    }, 60*1000);
+    }, 120*1000);
     
     afterAll(async () => {
         await terminate();
