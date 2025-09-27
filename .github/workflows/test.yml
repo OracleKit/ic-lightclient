@@ -16,7 +16,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: yarn
       
       - name: setup rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -31,7 +30,6 @@ jobs:
       - name: verify installs
         run: |
           node --version
-          yarn --version
           cargo --version
           dfx --version
 
@@ -40,6 +38,7 @@ jobs:
 
       - name: build canister and oc_agent
         run: |
+          npm install
           npm run build:canister
           npm run build:oc_agent
           dfx generate
