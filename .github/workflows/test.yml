@@ -39,6 +39,8 @@ jobs:
 
       - name: build canister and oc_agent
         run: |
+          export RUSTFLAGS="-Awarnings"
+          cargo install candid-extractor
           npm install
           npm run build:canister
           npm run build:oc_agent
