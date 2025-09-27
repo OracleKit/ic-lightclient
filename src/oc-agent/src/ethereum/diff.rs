@@ -45,17 +45,11 @@ impl<S: ConsensusSpec> EthereumStateDiff<S> {
         }
     }
 
-    fn get_diff_updates_for_bootstrap(
-        &self,
-        store: &LightClientStore<S>,
-    ) -> Vec<LightClientUpdatePayload<S>> {
+    fn get_diff_updates_for_bootstrap(&self, store: &LightClientStore<S>) -> Vec<LightClientUpdatePayload<S>> {
         let mut updates = vec![];
 
         updates.push(LightClientUpdatePayload::Bootstrap(
-            self.bootstrap
-                .as_ref()
-                .expect("Bootstrap update not found")
-                .clone(),
+            self.bootstrap.as_ref().expect("Bootstrap update not found").clone(),
         ));
         updates.push(LightClientUpdatePayload::Update(UpdatePayload {
             optimistic_header: Some(store.optimistic_header.clone()),

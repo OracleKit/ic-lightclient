@@ -5,10 +5,8 @@ use ic_lightclient_types::{ChainState, ChainUpdates};
 use tokio::sync::Mutex;
 
 pub trait Chain {
-    type ConfigType;
-
     fn new() -> Self;
-    async fn init(&mut self, config: Self::ConfigType);
+    async fn init(&mut self);
     async fn get_updates(&mut self, state: ChainState) -> Option<ChainUpdates>;
 }
 
@@ -19,8 +17,6 @@ pub struct ChainManager {
 
 impl ChainManager {
     pub fn new() -> Self {
-        Self {
-            ethereum: Arc::new(Mutex::new(EthereumChain::new())),
-        }
+        Self { ethereum: Arc::new(Mutex::new(EthereumChain::new())) }
     }
 }

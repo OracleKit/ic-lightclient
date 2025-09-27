@@ -14,19 +14,9 @@ pub fn is_finality_proof_valid(
     current_epoch: u64,
     forks: &Forks,
 ) -> bool {
-    let (index, depth) = if current_epoch >= forks.electra.epoch {
-        (41, 7)
-    } else {
-        (41, 6)
-    };
+    let (index, depth) = if current_epoch >= forks.electra.epoch { (41, 7) } else { (41, 6) };
 
-    is_proof_valid(
-        attested_header.state_root,
-        finality_header,
-        finality_branch,
-        depth,
-        index,
-    )
+    is_proof_valid(attested_header.state_root, finality_header, finality_branch, depth, index)
 }
 
 pub fn is_next_committee_proof_valid<S: ConsensusSpec>(
@@ -36,19 +26,9 @@ pub fn is_next_committee_proof_valid<S: ConsensusSpec>(
     current_epoch: u64,
     forks: &Forks,
 ) -> bool {
-    let (index, depth) = if current_epoch >= forks.electra.epoch {
-        (23, 6)
-    } else {
-        (23, 5)
-    };
+    let (index, depth) = if current_epoch >= forks.electra.epoch { (23, 6) } else { (23, 5) };
 
-    is_proof_valid(
-        attested_header.state_root,
-        next_committee,
-        next_committee_branch,
-        depth,
-        index,
-    )
+    is_proof_valid(attested_header.state_root, next_committee, next_committee_branch, depth, index)
 }
 
 pub fn is_current_committee_proof_valid<S: ConsensusSpec>(
@@ -58,19 +38,9 @@ pub fn is_current_committee_proof_valid<S: ConsensusSpec>(
     current_epoch: u64,
     forks: &Forks,
 ) -> bool {
-    let (index, depth) = if current_epoch >= forks.electra.epoch {
-        (22, 6)
-    } else {
-        (22, 5)
-    };
+    let (index, depth) = if current_epoch >= forks.electra.epoch { (22, 6) } else { (22, 5) };
 
-    is_proof_valid(
-        attested_header.state_root,
-        current_committee,
-        current_committee_branch,
-        depth,
-        index,
-    )
+    is_proof_valid(attested_header.state_root, current_committee, current_committee_branch, depth, index)
 }
 
 pub fn is_execution_payload_proof_valid(
@@ -81,13 +51,7 @@ pub fn is_execution_payload_proof_valid(
     is_proof_valid(attested_header.body_root, execution, execution_branch, 4, 9)
 }
 
-fn is_proof_valid<T: TreeHash>(
-    root: B256,
-    leaf_object: &T,
-    branch: &[B256],
-    depth: usize,
-    index: usize,
-) -> bool {
+fn is_proof_valid<T: TreeHash>(root: B256, leaf_object: &T, branch: &[B256], depth: usize, index: usize) -> bool {
     if branch.len() != depth {
         return false;
     }

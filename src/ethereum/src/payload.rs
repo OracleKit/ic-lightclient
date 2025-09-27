@@ -36,10 +36,7 @@ pub enum LightClientStatePayload<S: ConsensusSpec> {
     Active(LightClientStateActive<S>),
 }
 
-pub fn apply_update_payload<S: ConsensusSpec>(
-    store: &mut LightClientStore<S>,
-    update: UpdatePayload<S>,
-) {
+pub fn apply_update_payload<S: ConsensusSpec>(store: &mut LightClientStore<S>, update: UpdatePayload<S>) {
     if let Some(current_sync_committee) = update.current_sync_committee {
         store.current_sync_committee = current_sync_committee;
     }

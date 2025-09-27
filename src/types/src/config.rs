@@ -10,10 +10,7 @@ pub struct ICPConfig {
 
 impl Default for ICPConfig {
     fn default() -> Self {
-        Self {
-            canister_id: Principal::anonymous(),
-            agent_url: "".to_string(),
-        }
+        Self { canister_id: Principal::anonymous(), agent_url: "".to_string() }
     }
 }
 

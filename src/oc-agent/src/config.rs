@@ -1,40 +1,69 @@
+use anyhow::{anyhow, Context, Result};
 use ic_agent::export::Principal;
-use ic_lightclient_ethereum::config::mainnet;
-use ic_lightclient_types::{Config, ICPConfig};
-use std::{env, str::FromStr};
+use serde::Deserialize;
+use std::{fs::read_to_string, sync::OnceLock};
 
-// pub fn load_config() -> Config {
-//     let config_file = "config.toml";
-//     let config_file_contents = std::fs::read_to_string(config_file)
-//         .expect("Failed to read config file");
+static INNER: OnceLock<ConfigSchema> = OnceLock::new();
 
-//     let config: Config = toml::from_str(&config_file_contents.as_str())
-//         .expect("Invalid config file");
+#[derive(Deserialize, Clone)]
+pub struct ICPConfig {
+    pub canister_id: Principal,
+    pub agent_url: String,
+}
 
-//     config
+#[derive(Deserialize, Clone)]
+pub struct EthereumConfig {
+    pub consensus_api: String,
+    pub execution_api: String,
+}
+
+#[derive(Deserialize)]
+struct ConfigSchema {
+    icp: ICPConfig,
+    ethereum: EthereumConfig,
+}
+
+pub struct Config {}
+
+impl Config {
+    pub fn init(file_path: &str) -> Result<()> {
+        let config = read_to_string(file_path).context(format!("Config file not found: {}", file_path))?;
+        let config: ConfigSchema = toml::from_str(&config).context("Error while parsing config file")?;
+        INNER.set(config).map_err(|_| anyhow!("Attempting to reinitialize config."))?;
+
+        Ok(())
+    }
+
+    pub fn icp() -> ICPConfig {
+        INNER.get().unwrap().icp.clone()
+    }
+
+    pub fn ethereum() -> EthereumConfig {
+        INNER.get().unwrap().ethereum.clone()
+    }
+}
+
+// fn icp_config_local() -> ICPConfig {
+//     ICPConfig {
+//         canister_id: Principal::from_str("uxrrr-q7777-77774-qaaaq-cai").unwrap(),
+//         agent_url: "http://127.0.0.1:4943".into(),
+//     }
 // }
 
-fn icp_config_local() -> ICPConfig {
-    ICPConfig {
-        canister_id: Principal::from_str("uxrrr-q7777-77774-qaaaq-cai").unwrap(),
-        agent_url: "http://127.0.0.1:4943".into(),
-    }
-}
+// fn icp_config_prod() -> ICPConfig {
+//     ICPConfig {
+//         canister_id: Principal::from_str("mawej-zyaaa-aaaah-qqbqa-cai").unwrap(),
+//         agent_url: "https://icp-api.io".into(),
+//     }
+// }
 
-fn icp_config_prod() -> ICPConfig {
-    ICPConfig {
-        canister_id: Principal::from_str("mawej-zyaaa-aaaah-qqbqa-cai").unwrap(),
-        agent_url: "https://icp-api.io".into(),
-    }
-}
-
-pub fn load_config() -> Config {
-    Config {
-        ethereum: mainnet(),
-        icp: if env::var("OKLC_PROD").is_err() {
-            icp_config_local()
-        } else {
-            icp_config_prod()
-        },
-    }
-}
+// pub fn load_config() -> Config {
+//     Config {
+//         ethereum: mainnet(),
+//         icp: if env::var("OKLC_PROD").is_err() {
+//             icp_config_local()
+//         } else {
+//             icp_config_prod()
+//         },
+//     }
+// }

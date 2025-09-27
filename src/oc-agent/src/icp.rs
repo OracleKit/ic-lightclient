@@ -1,5 +1,5 @@
+use crate::config::{Config, ICPConfig};
 use ic_agent::{export::Principal, Agent};
-use ic_lightclient_types::ICPConfig;
 use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use ic_utils::{call::SyncCall, Canister};
 use std::sync::OnceLock;
@@ -15,19 +15,16 @@ struct Inner {
 pub struct ICP;
 
 impl ICP {
-    pub async fn init(config: ICPConfig) {
+    pub async fn init() {
+        let config = Config::icp();
+
         let agent = Agent::builder()
             .with_url(config.agent_url.clone())
             .build()
             .expect("Failed to create agent");
 
         agent.fetch_root_key().await.unwrap();
-        INNER
-            .set(Inner {
-                agent,
-                canister_id: config.canister_id.clone(),
-            })
-            .unwrap();
+        INNER.set(Inner { agent, canister_id: config.canister_id.clone() }).unwrap();
     }
 
     fn canister<'a>() -> Canister<'a> {

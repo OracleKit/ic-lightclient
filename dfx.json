@@ -3,7 +3,11 @@
     "canister": {
       "candid": "src/canister/canister.did",
       "package": "ic-lightclient-canister",
-      "type": "rust"
+      "type": "rust",
+      "declarations": {
+        "bindings": ["ts", "js"],
+        "output": "src/test/declarations/canister"
+      }
     }
   },
   "defaults": {

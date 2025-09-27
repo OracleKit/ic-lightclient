@@ -1,0 +1,7 @@
+[icp]
+canister_id="uxrrr-q7777-77774-qaaaq-cai"
+agent_url="http://localhost:4943"
+
+[ethereum]
+consensus_api="https://ethereum.operationsolarstorm.org"
+execution_api="https://ethereum-rpc.publicnode.com"

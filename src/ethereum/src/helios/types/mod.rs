@@ -82,15 +82,9 @@ pub struct ExecutionPayloadHeader {
 pub struct Bootstrap<S: ConsensusSpec> {
     pub header: LightClientHeader,
     pub current_sync_committee: SyncCommittee<S>,
-    #[superstruct(
-        only(Deneb),
-        partial_getter(rename = "current_sync_committee_branch_deneb")
-    )]
+    #[superstruct(only(Deneb), partial_getter(rename = "current_sync_committee_branch_deneb"))]
     pub current_sync_committee_branch: FixedVector<B256, typenum::U5>,
-    #[superstruct(
-        only(Electra),
-        partial_getter(rename = "current_sync_committee_branch_electra")
-    )]
+    #[superstruct(only(Electra), partial_getter(rename = "current_sync_committee_branch_electra"))]
     pub current_sync_committee_branch: FixedVector<B256, typenum::U6>,
 }
 
@@ -118,15 +112,9 @@ impl<S: ConsensusSpec> Bootstrap<S> {
 pub struct Update<S: ConsensusSpec> {
     pub attested_header: LightClientHeader,
     pub next_sync_committee: SyncCommittee<S>,
-    #[superstruct(
-        only(Deneb),
-        partial_getter(rename = "next_sync_committee_branch_deneb")
-    )]
+    #[superstruct(only(Deneb), partial_getter(rename = "next_sync_committee_branch_deneb"))]
     pub next_sync_committee_branch: FixedVector<B256, typenum::U5>,
-    #[superstruct(
-        only(Electra),
-        partial_getter(rename = "next_sync_committee_branch_electra")
-    )]
+    #[superstruct(only(Electra), partial_getter(rename = "next_sync_committee_branch_electra"))]
     pub next_sync_committee_branch: FixedVector<B256, typenum::U6>,
     pub finalized_header: LightClientHeader,
     #[superstruct(only(Deneb), partial_getter(rename = "finality_branch_deneb"))]
@@ -248,9 +236,7 @@ impl<S: ConsensusSpec> From<&Update<S>> for GenericUpdate<S> {
             sync_aggregate: update.sync_aggregate().clone(),
             signature_slot: *update.signature_slot(),
             next_sync_committee: default_to_none(update.next_sync_committee().clone()),
-            next_sync_committee_branch: default_branch_to_none(
-                &update.next_sync_committee_branch(),
-            ),
+            next_sync_committee_branch: default_branch_to_none(&update.next_sync_committee_branch()),
             finalized_header: default_header_to_none(update.finalized_header().clone()),
             finality_branch: default_branch_to_none(&update.finality_branch()),
         }
@@ -304,9 +290,7 @@ fn default_branch_to_none(value: &[B256]) -> Option<Vec<B256>> {
 }
 
 fn default_header_to_none(value: LightClientHeader) -> Option<LightClientHeader> {
-    if value.beacon == BeaconBlockHeader::default()
-        && value.execution == ExecutionPayloadHeader::default()
-    {
+    if value.beacon == BeaconBlockHeader::default() && value.execution == ExecutionPayloadHeader::default() {
         None
     } else {
         Some(value)
