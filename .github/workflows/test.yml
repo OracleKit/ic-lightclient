@@ -38,6 +38,12 @@ jobs:
       - name: run fmt check
         run: cargo fmt --check
 
+      - name: build canister and oc_agent
+        run: |
+          npm run build:canister
+          npm run build:oc_agent
+          dfx generate
+
       - name: run e2e tests
         run: |
-          yarn test:e2e
+          npm run test:e2e

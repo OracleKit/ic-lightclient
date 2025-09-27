@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "build:canister": "bash scripts/build/canister.bash",
-    "test:e2e": "bash scripts/test/e2e.bash"
+    "build:oc_agent": "cargo build -p ic-lightclient-oc-agent",
+    "test:e2e": "jest"
   },
   "dependencies": {
     "@dfinity/agent": "^3.2.6",
