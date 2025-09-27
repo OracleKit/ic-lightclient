@@ -3,7 +3,7 @@ use std::rc::Rc;
 use crate::{config::ConfigManager, ChainInterface};
 use ic_lightclient_ethereum::{
     helios::{
-        consensus::{apply_bootstrap, apply_finality_update, apply_optimistic_update, apply_update, verify_bootstrap},
+        consensus::{apply_bootstrap, verify_bootstrap},
         spec::MainnetConsensusSpec,
         types::LightClientStore,
     },
@@ -50,7 +50,7 @@ impl ChainInterface for EthereumChain {
         ChainState { version: 1, state, tasks: vec![] }
     }
 
-    fn are_updates_valid(&self, updates: ChainUpdates) -> bool {
+    fn are_updates_valid(&self, _: ChainUpdates) -> bool {
         // Implement Ethereum-specific logic to validate updates
         true
     }
