@@ -3,16 +3,13 @@ use std::rc::Rc;
 use crate::{config::ConfigManager, ChainInterface};
 use ic_lightclient_ethereum::{
     helios::{
-        consensus::{
-            apply_bootstrap, apply_finality_update, apply_optimistic_update, apply_update,
-            verify_bootstrap,
-        },
+        consensus::{apply_bootstrap, apply_finality_update, apply_optimistic_update, apply_update, verify_bootstrap},
         spec::MainnetConsensusSpec,
         types::LightClientStore,
     },
     payload::{
-        apply_update_payload, LightClientStateActive, LightClientStateBootstrap,
-        LightClientStatePayload, LightClientUpdatePayload,
+        apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload,
+        LightClientUpdatePayload,
     },
 };
 use ic_lightclient_types::{ChainState, ChainUpdates, Config};
@@ -37,32 +34,20 @@ impl ChainInterface for EthereumChain {
     fn get_state(&self) -> ChainState {
         let state = if !self.is_bootstrapped {
             let checkpoint_root = self.config.ethereum.checkpoint_block_root.clone();
-            let state = LightClientStateBootstrap {
-                block_hash: checkpoint_root,
-            };
-            let state = serde_json::to_vec(
-                &LightClientStatePayload::<MainnetConsensusSpec>::Bootstrap(state),
-            )
-            .expect("Failed to serialize state");
+            let state = LightClientStateBootstrap { block_hash: checkpoint_root };
+            let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Bootstrap(state))
+                .expect("Failed to serialize state");
 
             state
         } else {
-            let state = LightClientStateActive {
-                store: self.store.clone(),
-            };
-            let state = serde_json::to_vec(
-                &LightClientStatePayload::<MainnetConsensusSpec>::Active(state),
-            )
-            .expect("Failed to serialize state");
+            let state = LightClientStateActive { store: self.store.clone() };
+            let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Active(state))
+                .expect("Failed to serialize state");
 
             state
         };
 
-        ChainState {
-            version: 1,
-            state,
-            tasks: vec![],
-        }
+        ChainState { version: 1, state, tasks: vec![] }
     }
 
     fn are_updates_valid(&self, updates: ChainUpdates) -> bool {

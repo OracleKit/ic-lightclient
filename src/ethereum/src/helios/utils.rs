@@ -15,10 +15,7 @@ pub fn compute_committee_sign_root(header: B256, fork_data_root: B256) -> B256 {
     compute_signing_root(header, domain)
 }
 
-pub fn calculate_fork_version<S: ConsensusSpec>(
-    forks: &Forks,
-    slot: u64,
-) -> FixedVector<u8, typenum::U4> {
+pub fn calculate_fork_version<S: ConsensusSpec>(forks: &Forks, slot: u64) -> FixedVector<u8, typenum::U4> {
     let epoch = slot / S::slots_per_epoch();
 
     let version = if epoch >= forks.electra.epoch {
@@ -38,14 +35,8 @@ pub fn calculate_fork_version<S: ConsensusSpec>(
     FixedVector::from(version.as_slice().to_vec())
 }
 
-pub fn compute_fork_data_root(
-    current_version: FixedVector<u8, typenum::U4>,
-    genesis_validator_root: B256,
-) -> B256 {
-    let fork_data = ForkData {
-        current_version,
-        genesis_validator_root,
-    };
+pub fn compute_fork_data_root(current_version: FixedVector<u8, typenum::U4>, genesis_validator_root: B256) -> B256 {
+    let fork_data = ForkData { current_version, genesis_validator_root };
 
     fork_data.tree_hash_root()
 }
@@ -67,10 +58,7 @@ pub fn get_participating_keys<S: ConsensusSpec>(
 }
 
 fn compute_signing_root(object_root: B256, domain: B256) -> B256 {
-    let data = SigningData {
-        object_root,
-        domain,
-    };
+    let data = SigningData { object_root, domain };
 
     data.tree_hash_root()
 }

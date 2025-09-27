@@ -14,13 +14,13 @@ pub struct ICPConfig {
 #[derive(Deserialize, Clone)]
 pub struct EthereumConfig {
     pub consensus_api: String,
-    pub execution_api: String,    
+    pub execution_api: String,
 }
 
 #[derive(Deserialize)]
 struct ConfigSchema {
     icp: ICPConfig,
-    ethereum: EthereumConfig
+    ethereum: EthereumConfig,
 }
 
 pub struct Config {}

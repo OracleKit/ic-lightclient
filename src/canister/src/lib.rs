@@ -21,10 +21,7 @@ fn get_state() -> CanisterState {
     let chains = GlobalState::chains();
     let ethereum_state = chains.borrow().ethereum.get_state();
 
-    CanisterState {
-        version: 1,
-        ethereum: ethereum_state,
-    }
+    CanisterState { version: 1, ethereum: ethereum_state }
 }
 
 #[ic_cdk::update]
