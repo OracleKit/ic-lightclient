@@ -6,6 +6,9 @@
     "test:e2e": "bash scripts/test/e2e.bash"
   },
   "dependencies": {
+    "@dfinity/agent": "^3.2.6",
+    "@dfinity/candid": "^3.2.6",
+    "@dfinity/principal": "^3.2.6",
     "zx": "^8.3.0"
   },
   "devDependencies": {

@@ -17,7 +17,7 @@ pub fn mainnet() -> EthereumConfig {
         consensus_api: "https://ethereum.operationsolarstorm.org".into(),
         execution_api: "https://ethereum-rpc.publicnode.com".into(),
         checkpoint_block_root: b256!(
-            "00203619f27722af905f1464b6959c2c96f1c8a4fd564e17b61819ba407c518e"
+            "9351eecd4b8f073d6affd595952a1b06536004b229f7119273a0d1bcb602b5a0"
         ),
         genesis_validator_root: b256!(
             "4b363db94e286120d76eb905340fdd4e54bfe9f06bf33ff6cf5ad27f511bfe95"

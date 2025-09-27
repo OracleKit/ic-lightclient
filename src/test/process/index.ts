@@ -189,7 +189,7 @@ export function isChildHealthy(childId: number): boolean {
     return child.state == ProcessState.SPAWNED && !child.isError;
 }
 
-export async function spawnSync(command: string, args: string[]): Promise<number | null> {
+export async function spawnAndWait(command: string, args: string[]): Promise<number | null> {
     ProcessManager.init();
     const childId = ProcessManager.registerProcess(command, args);
     const child = ProcessManager.getChildProcess(childId);
