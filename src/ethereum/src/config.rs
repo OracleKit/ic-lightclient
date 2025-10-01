@@ -1,31 +1,28 @@
-use crate::helios::types::{Fork, Forks};
-use alloy_primitives::{b256, fixed_bytes, B256};
-use serde::Deserialize;
+use alloy_primitives::B256;
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Debug, Default)]
+#[derive(Debug)]
 pub struct EthereumConfig {
-    pub consensus_api: String,
-    pub execution_api: String,
     pub checkpoint_block_root: B256,
-    pub genesis_validator_root: B256,
-    pub genesis_time: u64,
-    pub forks: Forks,
 }
 
-pub fn mainnet() -> EthereumConfig {
-    EthereumConfig {
-        consensus_api: "https://ethereum.operationsolarstorm.org".into(),
-        execution_api: "https://ethereum-rpc.publicnode.com".into(),
-        checkpoint_block_root: b256!("9351eecd4b8f073d6affd595952a1b06536004b229f7119273a0d1bcb602b5a0"),
-        genesis_validator_root: b256!("4b363db94e286120d76eb905340fdd4e54bfe9f06bf33ff6cf5ad27f511bfe95"),
-        genesis_time: 1606824023,
-        forks: Forks {
-            genesis: Fork { epoch: 0, fork_version: fixed_bytes!("00000000") },
-            altair: Fork { epoch: 74240, fork_version: fixed_bytes!("01000000") },
-            bellatrix: Fork { epoch: 144896, fork_version: fixed_bytes!("02000000") },
-            capella: Fork { epoch: 194048, fork_version: fixed_bytes!("03000000") },
-            deneb: Fork { epoch: 269568, fork_version: fixed_bytes!("04000000") },
-            electra: Fork { epoch: 364032, fork_version: fixed_bytes!("05000000") },
-        },
-    }
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RawSlotResponse {
+    pub data: RawSlotResponseData,
+}
+
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RawSlotResponseData {
+    pub slots: Vec<Slot>,
+}
+
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Slot {
+    pub block_root: Option<B256>,
+}
+
+pub fn parse_checkpointz_output_to_config(data: Vec<u8>) -> EthereumConfig {
+    let data: RawSlotResponse = serde_json::from_slice(data.as_slice()).unwrap();
+
+    EthereumConfig { checkpoint_block_root: data.data.slots[0].block_root.unwrap() }
 }

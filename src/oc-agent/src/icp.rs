@@ -1,4 +1,4 @@
-use crate::config::{Config, ICPConfig};
+use crate::config::Config;
 use ic_agent::{export::Principal, Agent};
 use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use ic_utils::{call::SyncCall, Canister};
