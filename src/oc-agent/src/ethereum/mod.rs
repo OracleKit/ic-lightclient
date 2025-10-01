@@ -1,12 +1,11 @@
 mod api;
 mod diff;
 
-use crate::chain::Chain;
 use crate::config::Config;
 use alloy_primitives::B256;
 use api::{ConsensusApi, ExecutionApi};
 use diff::EthereumStateDiff;
-use ic_lightclient_ethereum::config::mainnet;
+use ic_lightclient_ethereum::parameters::mainnet;
 use ic_lightclient_ethereum::{
     helios::{
         consensus::{
@@ -32,12 +31,12 @@ pub struct EthereumChain {
     state_differ: EthereumStateDiff<MainnetConsensusSpec>,
 }
 
-impl Chain for EthereumChain {
-    fn new() -> Self {
+impl EthereumChain {
+    pub fn new() -> Self {
         Self::default()
     }
 
-    async fn init(&mut self) {
+    pub async fn init(&mut self, initial_state: ChainState) {
         let config = Config::ethereum();
         let parameters = mainnet();
 
@@ -48,14 +47,19 @@ impl Chain for EthereumChain {
         self.genesis_validator_root = parameters.genesis_validator_root;
         self.forks = parameters.forks;
 
-        let bootstrap = ConsensusApi::bootstrap(parameters.checkpoint_block_root).await;
+        let canister_state: LightClientStatePayload<MainnetConsensusSpec> = serde_json::from_slice(&initial_state.state).unwrap();
+        let LightClientStatePayload::Bootstrap(canister_state) = canister_state else {
+            panic!("Canister not in bootstrap state.");
+        };
+
+        let bootstrap = ConsensusApi::bootstrap(canister_state.block_hash).await;
         apply_bootstrap(&mut self.light_client_store, &bootstrap);
 
         self.state_differ.add_bootstrap(bootstrap);
         println!("Ethereum light client initialized with bootstrap data.");
     }
 
-    async fn get_updates(&mut self, state: ChainState) -> Option<ChainUpdates> {
+    pub async fn get_updates(&mut self, state: ChainState) -> Option<ChainUpdates> {
         self.check_and_sync().await;
 
         let canister_state: LightClientStatePayload<MainnetConsensusSpec> =
@@ -72,9 +76,7 @@ impl Chain for EthereumChain {
             None
         }
     }
-}
 
-impl EthereumChain {
     async fn check_and_sync(&mut self) {
         let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
         let current_time_sec = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();

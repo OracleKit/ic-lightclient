@@ -7,7 +7,7 @@ mod icp;
 mod util;
 
 use anyhow::Result;
-use chain::{Chain, ChainManager};
+use chain::ChainManager;
 use ic_lightclient_types::CanisterUpdates;
 use icp::ICP;
 use std::time::Duration;
@@ -23,9 +23,10 @@ async fn main() -> Result<()> {
     Config::init(&config_file)?;
 
     ICP::init().await;
+    let state = ICP::get_canister_state().await;
 
     let chain_manager = ChainManager::new();
-    chain_manager.ethereum.try_lock().unwrap().init().await;
+    chain_manager.ethereum.try_lock().unwrap().init(state.ethereum).await;
 
     loop {
         let state = ICP::get_canister_state().await;

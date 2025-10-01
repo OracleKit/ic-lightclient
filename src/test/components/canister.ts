@@ -22,5 +22,8 @@ export async function setupCanister(): Promise<string> {
     ret = await spawnAndWait('rm', [canisterFile]);
     if ( ret !== 0 ) throw "Unable to cleanup.";
 
+    ret = await spawnAndWait('dfx', ['canister', 'call', "canister", "init"]);
+    if ( ret !== 0 ) throw "Unable to init canister";
+
     return canisterId;
 }

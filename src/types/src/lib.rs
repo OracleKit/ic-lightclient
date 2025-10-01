@@ -1,6 +1,3 @@
-mod config;
-pub use config::*;
-
 use candid::{CandidType, Deserialize};
 use serde::Serialize;
 

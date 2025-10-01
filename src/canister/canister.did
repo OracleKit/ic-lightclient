@@ -17,5 +17,6 @@ service : {
   get_latest_block_hash : () -> (text) query;
   get_state : () -> (CanisterState) query;
   http_request : (HttpRequest) -> (HttpResponse) query;
+  init : () -> ();
   update_state : (CanisterUpdates) -> ();
 }
