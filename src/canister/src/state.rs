@@ -1,7 +1,10 @@
 use ic_lightclient_ethereum::parameters::mainnet;
 
 use crate::ethereum::EthereumChain;
-use std::{cell::{OnceCell, RefCell}, rc::Rc};
+use std::{
+    cell::{OnceCell, RefCell},
+    rc::Rc,
+};
 
 thread_local! {
     static CHAINS: OnceCell<Rc<RefCell<ChainState>>> = OnceCell::new();

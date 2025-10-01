@@ -1,14 +1,17 @@
 mod config;
 
 use ic_lightclient_ethereum::{
-    config::EthereumConfig, helios::{
+    config::EthereumConfig,
+    helios::{
         consensus::{apply_bootstrap, verify_bootstrap},
         spec::MainnetConsensusSpec,
         types::LightClientStore,
-    }, parameters::EthereumParameters, payload::{
+    },
+    parameters::EthereumParameters,
+    payload::{
         apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload,
         LightClientUpdatePayload,
-    }
+    },
 };
 use ic_lightclient_types::{ChainState, ChainUpdates};
 
@@ -19,7 +22,7 @@ pub struct EthereumChain {
     is_bootstrapped: bool,
     store: LightClientStore<MainnetConsensusSpec>,
     config: EthereumConfig,
-    parameters: EthereumParameters
+    parameters: EthereumParameters,
 }
 
 impl EthereumChain {
@@ -28,7 +31,7 @@ impl EthereumChain {
             is_bootstrapped: false,
             store: LightClientStore::<MainnetConsensusSpec>::default(),
             config: EthereumConfigManager::new(&parameters).await,
-            parameters
+            parameters,
         }
     }
 
@@ -93,7 +96,7 @@ impl EthereumChain {
             }
         }
     }
-    
+
     pub fn get_latest_block_hash(&self) -> String {
         if !self.is_bootstrapped {
             self.config.checkpoint_block_root.to_string()

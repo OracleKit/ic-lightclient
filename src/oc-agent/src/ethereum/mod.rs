@@ -47,7 +47,8 @@ impl EthereumChain {
         self.genesis_validator_root = parameters.genesis_validator_root;
         self.forks = parameters.forks;
 
-        let canister_state: LightClientStatePayload<MainnetConsensusSpec> = serde_json::from_slice(&initial_state.state).unwrap();
+        let canister_state: LightClientStatePayload<MainnetConsensusSpec> =
+            serde_json::from_slice(&initial_state.state).unwrap();
         let LightClientStatePayload::Bootstrap(canister_state) = canister_state else {
             panic!("Canister not in bootstrap state.");
         };
