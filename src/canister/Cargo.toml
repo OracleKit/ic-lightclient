@@ -9,12 +9,12 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-candid = "0.10"
-ic-cdk = "0.13"
-ic-cdk-timers = "0.7" # Feel free to remove this dependency if you don't need timers
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
+candid.workspace = true
+ic-cdk.workspace = true
+ic-cdk-timers.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 ic-lightclient-types = { path = "../types" }
 ic-lightclient-ethereum = { path = "../ethereum" }
-enum_dispatch = "0.3.13"
-toml = "0.8.20"
+enum_dispatch.workspace = true
+toml.workspace = true
