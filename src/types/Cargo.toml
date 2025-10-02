@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-candid = "0.10"
-serde = { version = "1.0.219", features = ["derive"] }
+candid.workspace = true
+serde.workspace = true
 ic-lightclient-ethereum = { path = "../ethereum" }
-ic_principal = "0.1.1"
-alloy-primitives = { version = "1.0.0", features = ["serde"] }
+ic_principal.workspace = true
+alloy-primitives.workspace = true
