@@ -81,6 +81,8 @@ class ProcessManagerClass {
         child.on('exit', (code: number, signal) => {
             CustomConsole.log(`${this._logPrefix} ${command} exited with code: ${code} ${signal}`);
             wrappedChild.state = ProcessState.EXITED;
+            child.stdout.destroy();
+            child.stderr.destroy();
         });
 
         return this._children.push(wrappedChild) - 1;
