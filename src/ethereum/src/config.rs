@@ -2,7 +2,7 @@ use crate::helios::types::{Fork, Forks};
 use alloy_primitives::{b256, fixed_bytes, B256};
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Debug, Default, Serialize)]
+#[derive(Deserialize, Debug, Default, Serialize, Clone)]
 pub struct EthereumConfig {
     pub execution_api: String,
     pub consensus_api: String,

@@ -1,25 +1,13 @@
 use anyhow::{anyhow, Context, Result};
-use ic_agent::export::Principal;
+use ic_lightclient_types::config::{EthereumConfig, IcpConfig};
 use serde::Deserialize;
 use std::{fs::read_to_string, sync::OnceLock};
 
 static INNER: OnceLock<ConfigSchema> = OnceLock::new();
 
-#[derive(Deserialize, Clone)]
-pub struct ICPConfig {
-    pub canister_id: Principal,
-    pub agent_url: String,
-}
-
-#[derive(Deserialize, Clone)]
-pub struct EthereumConfig {
-    pub consensus_api: String,
-    pub execution_api: String,
-}
-
 #[derive(Deserialize)]
 struct ConfigSchema {
-    icp: ICPConfig,
+    icp: IcpConfig,
     ethereum: EthereumConfig,
 }
 
@@ -34,7 +22,7 @@ impl Config {
         Ok(())
     }
 
-    pub fn icp() -> ICPConfig {
+    pub fn icp() -> IcpConfig {
         INNER.get().unwrap().icp.clone()
     }
 
