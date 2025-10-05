@@ -1,28 +1,20 @@
 mod checkpoint;
 
+use std::rc::Rc;
 use crate::{chain::Chain, ethereum::checkpoint::EthereumCheckpointManager};
 use async_trait::async_trait;
 use ic_lightclient_ethereum::{
-    checkpoint::EthereumCheckpoint,
     config::EthereumConfig,
-    helios::{
-        consensus::{apply_bootstrap, verify_bootstrap},
-        spec::MainnetConsensusSpec,
-        types::LightClientStore,
-    },
-    payload::{
-        apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload,
-        LightClientUpdatePayload,
-    },
+    helios::spec::MainnetConsensusSpec,
+    payload::LightClientUpdatePayload,
+    EthereumLightClientConsensus,
 };
 use ic_lightclient_types::{ChainState, ChainUpdates};
 
 #[derive(Debug)]
 pub struct EthereumChain {
-    is_bootstrapped: bool,
-    store: LightClientStore<MainnetConsensusSpec>,
-    checkpoint: Option<EthereumCheckpoint>,
-    config: EthereumConfig,
+    consensus: Option<EthereumLightClientConsensus<MainnetConsensusSpec>>,
+    config: Rc<EthereumConfig>,
 }
 
 impl EthereumChain {
@@ -30,35 +22,22 @@ impl EthereumChain {
         let config: EthereumConfig = serde_json::from_str(&config).unwrap();
 
         Self {
-            is_bootstrapped: false,
-            store: LightClientStore::<MainnetConsensusSpec>::default(),
-            checkpoint: None,
-            config,
+            consensus: None,
+            config: Rc::new(config),
         }
     }
 }
 
-#[async_trait]
+#[async_trait(?Send)]
 impl Chain for EthereumChain {
     async fn init(&mut self) {
-        self.checkpoint = Some(EthereumCheckpointManager::new(&self.config).await);
+        let checkpoint = EthereumCheckpointManager::new(&self.config).await;
+        self.consensus = Some(EthereumLightClientConsensus::new(checkpoint.checkpoint_block_root, self.config.clone()));
     }
 
     fn get_state(&self) -> ChainState {
-        let state = if !self.is_bootstrapped {
-            let checkpoint_root = self.checkpoint.as_ref().unwrap().checkpoint_block_root.clone();
-            let state = LightClientStateBootstrap { block_hash: checkpoint_root };
-            let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Bootstrap(state))
-                .expect("Failed to serialize state");
-
-            state
-        } else {
-            let state = LightClientStateActive { store: self.store.clone() };
-            let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Active(state))
-                .expect("Failed to serialize state");
-
-            state
-        };
+        let state = self.consensus.as_ref().unwrap().get_state();
+        let state = serde_json::to_vec(&state).unwrap();
 
         ChainState { version: 1, state, tasks: vec![] }
     }
@@ -84,37 +63,10 @@ impl Chain for EthereumChain {
 
         // TODO: Add check for conflicts
 
-        for update in updates {
-            match update {
-                LightClientUpdatePayload::Bootstrap(bootstrap) => {
-                    if self.is_bootstrapped {
-                        panic!("Received bootstrap update after being bootstrapped");
-                    }
-
-                    let checkpoint_root = self.checkpoint.as_ref().unwrap().checkpoint_block_root.clone();
-                    let forks = &self.config.forks;
-
-                    verify_bootstrap(&bootstrap, checkpoint_root, forks).unwrap();
-                    apply_bootstrap(&mut self.store, &bootstrap);
-                    self.is_bootstrapped = true;
-                }
-
-                LightClientUpdatePayload::Update(update) => {
-                    apply_update_payload(&mut self.store, update);
-                }
-            }
-        }
+        self.consensus.as_mut().unwrap().update_state(updates);
     }
 
     fn get_latest_block_hash(&self) -> String {
-        if !self.is_bootstrapped {
-            self.checkpoint.as_ref().unwrap().checkpoint_block_root.to_string()
-        } else {
-            format!(
-                "Slot: {}, hash: {}",
-                self.store.optimistic_header.beacon.slot,
-                self.store.optimistic_header.beacon.state_root.to_string()
-            )
-        }
+        self.consensus.as_ref().unwrap().get_latest_block_hash()
     }
 }
