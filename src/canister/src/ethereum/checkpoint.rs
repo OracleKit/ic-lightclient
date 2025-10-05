@@ -2,16 +2,16 @@ use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod,
 };
 use ic_lightclient_ethereum::{
-    config::{parse_checkpointz_output_to_config, EthereumConfig},
-    parameters::EthereumParameters,
+    checkpoint::{parse_checkpointz_output_to_config, EthereumCheckpoint},
+    config::EthereumConfig,
 };
 
-pub struct EthereumConfigManager;
+pub struct EthereumCheckpointManager;
 
-impl EthereumConfigManager {
-    pub async fn new(parameters: &EthereumParameters) -> EthereumConfig {
+impl EthereumCheckpointManager {
+    pub async fn new(config: &EthereumConfig) -> EthereumCheckpoint {
         // fetch
-        let url = parameters.checkpoint_sync_url.clone();
+        let url = config.checkpoint_sync_host.clone();
         let url = format!("{}/checkpointz/v1/beacon/slots", url);
 
         let res = http_request(

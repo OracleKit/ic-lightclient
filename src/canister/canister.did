@@ -19,7 +19,7 @@ service : {
   get_state : () -> (CanisterState) query;
   http_request : (HttpRequest) -> (HttpResponse) query;
   init : () -> ();
-  list_paramters : () -> (vec text) query;
+  list_parameters : () -> (vec text) query;
   set_parameter : (text, text) -> ();
   update_state : (CanisterUpdates) -> ();
 }

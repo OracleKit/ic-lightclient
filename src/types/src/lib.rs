@@ -1,6 +1,8 @@
 use candid::{CandidType, Deserialize};
 use serde::Serialize;
 
+pub mod config;
+
 #[derive(CandidType, Serialize, Deserialize, Debug, Default)]
 pub struct ChainState {
     pub version: u64,

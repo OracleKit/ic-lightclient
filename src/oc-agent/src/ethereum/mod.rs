@@ -5,7 +5,6 @@ use crate::config::Config;
 use alloy_primitives::B256;
 use api::{ConsensusApi, ExecutionApi};
 use diff::EthereumStateDiff;
-use ic_lightclient_ethereum::parameters::mainnet;
 use ic_lightclient_ethereum::{
     helios::{
         consensus::{

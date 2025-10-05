@@ -1,28 +1,13 @@
-use alloy_primitives::B256;
+use crate::helios::types::{Fork, Forks};
+use alloy_primitives::{b256, fixed_bytes, B256};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Deserialize, Debug, Default, Serialize)]
 pub struct EthereumConfig {
-    pub checkpoint_block_root: B256,
-}
-
-#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RawSlotResponse {
-    pub data: RawSlotResponseData,
-}
-
-#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RawSlotResponseData {
-    pub slots: Vec<Slot>,
-}
-
-#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Slot {
-    pub block_root: Option<B256>,
-}
-
-pub fn parse_checkpointz_output_to_config(data: Vec<u8>) -> EthereumConfig {
-    let data: RawSlotResponse = serde_json::from_slice(data.as_slice()).unwrap();
-
-    EthereumConfig { checkpoint_block_root: data.data.slots[0].block_root.unwrap() }
+    pub execution_api: String,
+    pub consensus_api: String,
+    pub checkpoint_sync_host: String,
+    pub genesis_validator_root: B256,
+    pub genesis_time: u64,
+    pub forks: Forks,
 }

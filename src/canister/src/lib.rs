@@ -51,7 +51,7 @@ fn set_parameter(chain: String, parameter: String) {
 }
 
 #[ic_cdk::query]
-fn list_paramters() -> Vec<String> {
+fn list_parameters() -> Vec<String> {
     ParameterManager::list()
 }
 
