@@ -5,7 +5,6 @@ use crate::config::Config;
 use alloy_primitives::B256;
 use api::{ConsensusApi, ExecutionApi};
 use diff::EthereumStateDiff;
-use ic_lightclient_ethereum::parameters::mainnet;
 use ic_lightclient_ethereum::{
     helios::{
         consensus::{
@@ -37,15 +36,15 @@ impl EthereumChain {
     }
 
     pub async fn init(&mut self, initial_state: ChainState) {
+        // TODO supposed to change. config should be fetched from canister.
         let config = Config::ethereum();
-        let parameters = mainnet();
 
         ExecutionApi::init(config.execution_api);
         ConsensusApi::init(config.consensus_api);
 
-        self.genesis_time = parameters.genesis_time;
-        self.genesis_validator_root = parameters.genesis_validator_root;
-        self.forks = parameters.forks;
+        self.genesis_time = config.genesis_time;
+        self.genesis_validator_root = config.genesis_validator_root;
+        self.forks = config.forks;
 
         let canister_state: LightClientStatePayload<MainnetConsensusSpec> =
             serde_json::from_slice(&initial_state.state).unwrap();

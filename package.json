@@ -4,6 +4,7 @@
   "scripts": {
     "build:canister": "bash scripts/build/canister.bash",
     "build:oc_agent": "cargo build -p ic-lightclient-oc-agent",
+    "build:tool": "cargo build -p ic-lightclient-tool",
     "test:e2e": "jest --detectOpenHandles"
   },
   "dependencies": {

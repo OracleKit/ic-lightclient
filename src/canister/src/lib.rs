@@ -1,7 +1,9 @@
+mod config;
 mod ethereum;
 mod metrics;
 mod state;
 
+use crate::config::ConfigManager;
 use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use metrics::{serve_metrics, HttpRequest, HttpResponse};
 use state::GlobalState;
@@ -41,6 +43,21 @@ fn http_request(_: HttpRequest) -> HttpResponse {
 #[ic_cdk::update]
 async fn init() {
     GlobalState::init().await;
+}
+
+#[ic_cdk::update]
+fn set_config(chain: String, config: String) {
+    ConfigManager::set(chain, config);
+}
+
+#[ic_cdk::query]
+fn list_configs() -> Vec<String> {
+    ConfigManager::list()
+}
+
+#[ic_cdk::query]
+fn get_config(chain: String) -> Option<String> {
+    ConfigManager::get(&chain)
 }
 
 ic_cdk::export_candid!();

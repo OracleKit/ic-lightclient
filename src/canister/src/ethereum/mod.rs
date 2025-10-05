@@ -1,13 +1,14 @@
-mod config;
+mod checkpoint;
 
+use crate::ethereum::checkpoint::EthereumCheckpointManager;
 use ic_lightclient_ethereum::{
+    checkpoint::EthereumCheckpoint,
     config::EthereumConfig,
     helios::{
         consensus::{apply_bootstrap, verify_bootstrap},
         spec::MainnetConsensusSpec,
         types::LightClientStore,
     },
-    parameters::EthereumParameters,
     payload::{
         apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload,
         LightClientUpdatePayload,
@@ -15,29 +16,33 @@ use ic_lightclient_ethereum::{
 };
 use ic_lightclient_types::{ChainState, ChainUpdates};
 
-use crate::ethereum::config::EthereumConfigManager;
-
 #[derive(Debug)]
 pub struct EthereumChain {
     is_bootstrapped: bool,
     store: LightClientStore<MainnetConsensusSpec>,
+    checkpoint: Option<EthereumCheckpoint>,
     config: EthereumConfig,
-    parameters: EthereumParameters,
 }
 
 impl EthereumChain {
-    pub async fn new(parameters: EthereumParameters) -> Self {
+    pub fn new(config: String) -> Self {
+        let config: EthereumConfig = serde_json::from_str(&config).unwrap();
+
         Self {
             is_bootstrapped: false,
             store: LightClientStore::<MainnetConsensusSpec>::default(),
-            config: EthereumConfigManager::new(&parameters).await,
-            parameters,
+            checkpoint: None,
+            config,
         }
+    }
+
+    pub async fn init(&mut self) {
+        self.checkpoint = Some(EthereumCheckpointManager::new(&self.config).await);
     }
 
     pub fn get_state(&self) -> ChainState {
         let state = if !self.is_bootstrapped {
-            let checkpoint_root = self.config.checkpoint_block_root.clone();
+            let checkpoint_root = self.checkpoint.as_ref().unwrap().checkpoint_block_root.clone();
             let state = LightClientStateBootstrap { block_hash: checkpoint_root };
             let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Bootstrap(state))
                 .expect("Failed to serialize state");
@@ -82,8 +87,8 @@ impl EthereumChain {
                         panic!("Received bootstrap update after being bootstrapped");
                     }
 
-                    let checkpoint_root = self.config.checkpoint_block_root.clone();
-                    let forks = &self.parameters.forks;
+                    let checkpoint_root = self.checkpoint.as_ref().unwrap().checkpoint_block_root.clone();
+                    let forks = &self.config.forks;
 
                     verify_bootstrap(&bootstrap, checkpoint_root, forks).unwrap();
                     apply_bootstrap(&mut self.store, &bootstrap);
@@ -99,7 +104,7 @@ impl EthereumChain {
 
     pub fn get_latest_block_hash(&self) -> String {
         if !self.is_bootstrapped {
-            self.config.checkpoint_block_root.to_string()
+            self.checkpoint.as_ref().unwrap().checkpoint_block_root.to_string()
         } else {
             format!(
                 "Slot: {}, hash: {}",

@@ -14,9 +14,12 @@ type HttpResponse = record {
   status_code : nat16;
 };
 service : {
+  get_config : (text) -> (opt text) query;
   get_latest_block_hash : () -> (text) query;
   get_state : () -> (CanisterState) query;
   http_request : (HttpRequest) -> (HttpResponse) query;
   init : () -> ();
+  list_configs : () -> (vec text) query;
+  set_config : (text, text) -> ();
   update_state : (CanisterUpdates) -> ();
 }

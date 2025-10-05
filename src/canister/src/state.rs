@@ -1,6 +1,4 @@
-use ic_lightclient_ethereum::parameters::mainnet;
-
-use crate::ethereum::EthereumChain;
+use crate::{config::ConfigManager, ethereum::EthereumChain};
 use std::{
     cell::{OnceCell, RefCell},
     rc::Rc,
@@ -19,7 +17,9 @@ pub struct GlobalState;
 
 impl GlobalState {
     pub async fn init() {
-        let ethereum = EthereumChain::new(mainnet()).await;
+        let mut ethereum = EthereumChain::new(ConfigManager::get("ethereum").unwrap());
+        ethereum.init().await;
+
         CHAINS.with(|chains| {
             chains.set(Rc::new(RefCell::new(ChainState { ethereum }))).unwrap();
         });
