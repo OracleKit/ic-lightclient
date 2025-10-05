@@ -1,8 +1,8 @@
+mod chain;
 mod config;
 mod ethereum;
 mod metrics;
 mod state;
-mod chain;
 
 use crate::config::ConfigManager;
 use ic_lightclient_types::{CanisterState, CanisterUpdates};

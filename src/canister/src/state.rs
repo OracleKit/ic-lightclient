@@ -21,7 +21,9 @@ impl GlobalState {
         ethereum.init().await;
 
         CHAINS.with(|chains| {
-            chains.set(Rc::new(RefCell::new(ChainState { ethereum: Box::new(ethereum) }))).unwrap();
+            chains
+                .set(Rc::new(RefCell::new(ChainState { ethereum: Box::new(ethereum) })))
+                .unwrap();
         });
     }
 

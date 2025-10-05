@@ -1,6 +1,6 @@
-use std::fmt::Debug;
 use async_trait::async_trait;
 use ic_lightclient_types::{ChainState, ChainUpdates};
+use std::fmt::Debug;
 
 #[async_trait]
 pub trait Chain: Debug {

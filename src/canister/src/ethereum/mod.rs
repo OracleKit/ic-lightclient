@@ -38,7 +38,6 @@ impl EthereumChain {
     }
 }
 
-
 #[async_trait]
 impl Chain for EthereumChain {
     async fn init(&mut self) {
