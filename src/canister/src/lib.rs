@@ -1,10 +1,12 @@
 mod ethereum;
 mod metrics;
 mod state;
+mod parameter;
 
 use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use metrics::{serve_metrics, HttpRequest, HttpResponse};
 use state::GlobalState;
+use crate::parameter::ParameterManager;
 
 #[ic_cdk::query]
 fn get_latest_block_hash() -> String {
@@ -41,6 +43,21 @@ fn http_request(_: HttpRequest) -> HttpResponse {
 #[ic_cdk::update]
 async fn init() {
     GlobalState::init().await;
+}
+
+#[ic_cdk::update]
+fn set_parameter(chain: String, parameter: String) {
+    ParameterManager::set(chain, parameter);
+}
+
+#[ic_cdk::query]
+fn list_paramters() -> Vec<String> {
+    ParameterManager::list()
+}
+
+#[ic_cdk::query]
+fn get_parameter(chain: String) -> Option<String> {
+    ParameterManager::get(&chain)
 }
 
 ic_cdk::export_candid!();
