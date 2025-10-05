@@ -1,4 +1,4 @@
-use crate::{config::ConfigManager, ethereum::EthereumChain};
+use crate::{chain::Chain, config::ConfigManager, ethereum::EthereumChain};
 use std::{
     cell::{OnceCell, RefCell},
     rc::Rc,
@@ -10,7 +10,7 @@ thread_local! {
 
 #[derive(Debug)]
 pub struct ChainState {
-    pub ethereum: EthereumChain,
+    pub ethereum: Box<dyn Chain>,
 }
 
 pub struct GlobalState;
@@ -21,7 +21,9 @@ impl GlobalState {
         ethereum.init().await;
 
         CHAINS.with(|chains| {
-            chains.set(Rc::new(RefCell::new(ChainState { ethereum }))).unwrap();
+            chains
+                .set(Rc::new(RefCell::new(ChainState { ethereum: Box::new(ethereum) })))
+                .unwrap();
         });
     }
 

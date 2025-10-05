@@ -1,3 +1,4 @@
+mod chain;
 mod config;
 mod ethereum;
 mod metrics;

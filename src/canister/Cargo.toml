@@ -19,3 +19,4 @@ ic-lightclient-ethereum = { path = "../ethereum" }
 enum_dispatch.workspace = true
 toml.workspace = true
 anyhow.workspace = true
+async-trait.workspace = true

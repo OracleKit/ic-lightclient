@@ -2044,6 +2044,7 @@ name = "ic-lightclient-canister"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "candid",
  "enum_dispatch",
  "ic-cdk",
