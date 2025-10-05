@@ -8,9 +8,7 @@ pub struct ConfigManager;
 
 impl ConfigManager {
     pub fn get(chain: &str) -> Option<String> {
-        CONFIG.with_borrow(|map| {
-            map.get(chain).map(|v| v.to_string())
-        })
+        CONFIG.with_borrow(|map| map.get(chain).map(|v| v.to_string()))
     }
 
     pub fn set(chain: String, config: String) {
@@ -20,8 +18,6 @@ impl ConfigManager {
     }
 
     pub fn list() -> Vec<String> {
-        CONFIG.with_borrow(|map| {
-            map.keys().map(|k| k.to_string()).collect()
-        })
+        CONFIG.with_borrow(|map| map.keys().map(|k| k.to_string()).collect())
     }
 }

@@ -1,20 +1,20 @@
 mod checkpoint;
 
+use crate::ethereum::checkpoint::EthereumCheckpointManager;
 use ic_lightclient_ethereum::{
     checkpoint::EthereumCheckpoint,
+    config::EthereumConfig,
     helios::{
         consensus::{apply_bootstrap, verify_bootstrap},
         spec::MainnetConsensusSpec,
         types::LightClientStore,
     },
-    config::EthereumConfig,
     payload::{
         apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload,
         LightClientUpdatePayload,
     },
 };
 use ic_lightclient_types::{ChainState, ChainUpdates};
-use crate::ethereum::checkpoint::EthereumCheckpointManager;
 
 #[derive(Debug)]
 pub struct EthereumChain {

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize, Debug)]
 struct Config {
     icp: IcpConfig,
-    ethereum: EthereumConfig
+    ethereum: EthereumConfig,
 }
 
 #[tokio::main]
@@ -18,6 +18,6 @@ async fn main() {
 
     IcpAgent::init(config.icp).await;
     IcpAgent::set_config("ethereum".into(), serde_json::to_string(&config.ethereum).unwrap()).await;
-    
+
     println!("Set config successfully.");
 }

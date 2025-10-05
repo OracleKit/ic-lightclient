@@ -1,12 +1,12 @@
+mod config;
 mod ethereum;
 mod metrics;
 mod state;
-mod config;
 
+use crate::config::ConfigManager;
 use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use metrics::{serve_metrics, HttpRequest, HttpResponse};
 use state::GlobalState;
-use crate::config::ConfigManager;
 
 #[ic_cdk::query]
 fn get_latest_block_hash() -> String {
