@@ -1,5 +1,5 @@
-use crate::helios::types::{Fork, Forks};
-use alloy_primitives::{b256, fixed_bytes, B256};
+use crate::helios::types::Forks;
+use alloy_primitives::B256;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug, Default, Serialize, Clone)]
