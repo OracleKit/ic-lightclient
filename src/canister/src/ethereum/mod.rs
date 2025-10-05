@@ -1,6 +1,7 @@
 mod checkpoint;
 
-use crate::ethereum::checkpoint::EthereumCheckpointManager;
+use crate::{chain::Chain, ethereum::checkpoint::EthereumCheckpointManager};
+use async_trait::async_trait;
 use ic_lightclient_ethereum::{
     checkpoint::EthereumCheckpoint,
     config::EthereumConfig,
@@ -35,12 +36,16 @@ impl EthereumChain {
             config,
         }
     }
+}
 
-    pub async fn init(&mut self) {
+
+#[async_trait]
+impl Chain for EthereumChain {
+    async fn init(&mut self) {
         self.checkpoint = Some(EthereumCheckpointManager::new(&self.config).await);
     }
 
-    pub fn get_state(&self) -> ChainState {
+    fn get_state(&self) -> ChainState {
         let state = if !self.is_bootstrapped {
             let checkpoint_root = self.checkpoint.as_ref().unwrap().checkpoint_block_root.clone();
             let state = LightClientStateBootstrap { block_hash: checkpoint_root };
@@ -64,7 +69,7 @@ impl EthereumChain {
     //     true
     // }
 
-    pub fn update_state(&mut self, updates: ChainUpdates) {
+    fn update_state(&mut self, updates: ChainUpdates) {
         let updates = updates.updates;
 
         // TODO: Add timer checks
@@ -102,7 +107,7 @@ impl EthereumChain {
         }
     }
 
-    pub fn get_latest_block_hash(&self) -> String {
+    fn get_latest_block_hash(&self) -> String {
         if !self.is_bootstrapped {
             self.checkpoint.as_ref().unwrap().checkpoint_block_root.to_string()
         } else {

@@ -2,8 +2,9 @@ mod config;
 mod ethereum;
 mod metrics;
 mod state;
+mod chain;
 
-use crate::config::ConfigManager;
+use crate::{chain::Chain, config::ConfigManager};
 use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use metrics::{serve_metrics, HttpRequest, HttpResponse};
 use state::GlobalState;
