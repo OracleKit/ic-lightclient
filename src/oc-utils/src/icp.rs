@@ -56,14 +56,14 @@ impl IcpAgent {
             .expect("Failed to update canister state");
     }
 
-    pub async fn set_parameter(name: String, value: String) {
+    pub async fn set_config(name: String, value: String) {
         let canister = IcpAgent::canister();
         let _: () = canister
-            .update("set_parameter")
+            .update("set_config")
             .with_args((name, value))
             .build()
             .call_and_wait()
             .await
-            .expect("Failed to set parameter");
+            .expect("Failed to set config in canister");
     }
 }

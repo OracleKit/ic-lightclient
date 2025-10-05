@@ -1,4 +1,4 @@
-use crate::{ethereum::EthereumChain, parameter::ParameterManager};
+use crate::{ethereum::EthereumChain, config::ConfigManager};
 use std::{
     cell::{OnceCell, RefCell},
     rc::Rc,
@@ -17,7 +17,7 @@ pub struct GlobalState;
 
 impl GlobalState {
     pub async fn init() {
-        let mut ethereum = EthereumChain::new(ParameterManager::get("ethereum").unwrap());
+        let mut ethereum = EthereumChain::new(ConfigManager::get("ethereum").unwrap());
         ethereum.init().await;
         
         CHAINS.with(|chains| {

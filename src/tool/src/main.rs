@@ -17,7 +17,7 @@ async fn main() {
     let config: Config = toml::from_str(&config).unwrap();
 
     IcpAgent::init(config.icp).await;
-    IcpAgent::set_parameter("ethereum".into(), serde_json::to_string(&config.ethereum).unwrap()).await;
+    IcpAgent::set_config("ethereum".into(), serde_json::to_string(&config.ethereum).unwrap()).await;
     
-    println!("Set parameters successfully.");
+    println!("Set config successfully.");
 }

@@ -1,12 +1,12 @@
 mod ethereum;
 mod metrics;
 mod state;
-mod parameter;
+mod config;
 
 use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use metrics::{serve_metrics, HttpRequest, HttpResponse};
 use state::GlobalState;
-use crate::parameter::ParameterManager;
+use crate::config::ConfigManager;
 
 #[ic_cdk::query]
 fn get_latest_block_hash() -> String {
@@ -46,18 +46,18 @@ async fn init() {
 }
 
 #[ic_cdk::update]
-fn set_parameter(chain: String, parameter: String) {
-    ParameterManager::set(chain, parameter);
+fn set_config(chain: String, config: String) {
+    ConfigManager::set(chain, config);
 }
 
 #[ic_cdk::query]
-fn list_parameters() -> Vec<String> {
-    ParameterManager::list()
+fn list_configs() -> Vec<String> {
+    ConfigManager::list()
 }
 
 #[ic_cdk::query]
-fn get_parameter(chain: String) -> Option<String> {
-    ParameterManager::get(&chain)
+fn get_config(chain: String) -> Option<String> {
+    ConfigManager::get(&chain)
 }
 
 ic_cdk::export_candid!();
