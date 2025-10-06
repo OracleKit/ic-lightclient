@@ -1,20 +1,41 @@
 use std::{fmt::Debug, rc::Rc};
+use serde::{de::DeserializeOwned, Serialize};
 use crate::{checkpoint::EthereumCheckpoint, config::EthereumConfig, helios::{consensus::{apply_bootstrap, verify_bootstrap}, spec::ConsensusSpec, types::LightClientStore}, payload::{apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
 
-pub trait EthereumLightClientConfigManager : Debug {
+pub trait TConfigManager {
+    fn new(config: String) -> Self;
+    fn init(&mut self) -> impl std::future::Future<Output = ()>;
+}
+
+pub trait TEthereumLightClientConfigManager : Debug {
     fn get_config(&self) -> &EthereumConfig;
     fn get_checkpoint(&self) -> &EthereumCheckpoint;
 }
 
+pub trait TConsensusManager {
+    type StatePayload : Serialize + Debug;
+    type UpdatePayload : DeserializeOwned + Debug;
+    type ConfigManager : TEthereumLightClientConfigManager;
+
+    fn new(config: Rc<Self::ConfigManager>) -> Self;
+    fn get_state(&self) -> Self::StatePayload;
+    fn update_state(&mut self, updates: Vec<Self::UpdatePayload>);
+    fn get_latest_block_hash(&self) -> String;
+}
+
 #[derive(Debug)]
-pub struct EthereumLightClientConsensus<S: ConsensusSpec, ConfigManager: EthereumLightClientConfigManager> {
+pub struct EthereumLightClientConsensus<S: ConsensusSpec, ConfigManager: TEthereumLightClientConfigManager> {
     is_bootstrapped: bool,
     store: LightClientStore<S>,
     config: Rc<ConfigManager>
 }
 
-impl<S: ConsensusSpec, ConfigManager: EthereumLightClientConfigManager> EthereumLightClientConsensus<S, ConfigManager> {
-    pub fn new(config: Rc<ConfigManager>) -> Self {
+impl<S: ConsensusSpec + Serialize + DeserializeOwned, ConfigManager: TEthereumLightClientConfigManager> TConsensusManager for EthereumLightClientConsensus<S, ConfigManager> {
+    type StatePayload = LightClientStatePayload<S>;
+    type UpdatePayload = LightClientUpdatePayload<S>;
+    type ConfigManager = ConfigManager;
+
+    fn new(config: Rc<ConfigManager>) -> Self {
         Self {
             is_bootstrapped: false,
             store: LightClientStore::default(),
@@ -22,18 +43,18 @@ impl<S: ConsensusSpec, ConfigManager: EthereumLightClientConfigManager> Ethereum
         }
     }
 
-    pub fn get_state(&self) -> LightClientStatePayload<S> {
+    fn get_state(&self) -> LightClientStatePayload<S> {
         if !self.is_bootstrapped {
             let checkpoint_root = self.config.get_checkpoint().checkpoint_block_root;
             let state = LightClientStateBootstrap { block_hash: checkpoint_root };
-            LightClientStatePayload::Bootstrap(state)
+            LightClientStatePayload::<S>::Bootstrap(state)
         } else {
             let state = LightClientStateActive { store: self.store.clone() };
-            LightClientStatePayload::Active(state)
+            LightClientStatePayload::<S>::Active(state)
         }
     }
 
-    pub fn update_state(&mut self, updates: Vec<LightClientUpdatePayload<S>>) {
+    fn update_state(&mut self, updates: Vec<LightClientUpdatePayload<S>>) {
         for update in updates {
             match update {
                 LightClientUpdatePayload::Bootstrap(bootstrap) => {
@@ -56,7 +77,7 @@ impl<S: ConsensusSpec, ConfigManager: EthereumLightClientConfigManager> Ethereum
         }
     }
     
-    pub fn get_latest_block_hash(&self) -> String {
+    fn get_latest_block_hash(&self) -> String {
         if !self.is_bootstrapped {
             self.config.get_checkpoint().checkpoint_block_root.to_string()
         } else {

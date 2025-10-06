@@ -1,35 +1,24 @@
-mod config;
+pub mod config;
 
-use std::rc::Rc;
-use crate::{chain::Chain, ethereum::config::EthereumConfigManager};
+use std::{fmt::Debug, rc::Rc};
+use crate::chain::Chain;
 use async_trait::async_trait;
-use ic_lightclient_ethereum::{
-    helios::spec::MainnetConsensusSpec,
-    payload::LightClientUpdatePayload,
-    EthereumLightClientConsensus,
-};
+use ic_lightclient_ethereum::consensus::{TConsensusManager, TEthereumLightClientConfigManager};
 use ic_lightclient_types::{ChainState, ChainUpdates};
 
 #[derive(Debug)]
-pub struct EthereumChain {
-    consensus: EthereumLightClientConsensus<MainnetConsensusSpec, EthereumConfigManager>,
+pub struct GenericChain<Consensus: TConsensusManager + Debug> {
+    consensus: Consensus,
 }
 
-impl EthereumChain {
-    pub async fn new(config: String) -> Self {
-        let mut config = EthereumConfigManager::new(config);
-        config.init().await;
-
-        let config = Rc::new(config);
-
-        Self {
-            consensus: EthereumLightClientConsensus::new(config.clone())
-        }
+impl<Consensus: TConsensusManager + Debug> GenericChain<Consensus> {
+    pub fn new(consensus: Consensus) -> Self {
+        Self { consensus }
     }
 }
 
 #[async_trait(?Send)]
-impl Chain for EthereumChain {
+impl<Consensus: TConsensusManager + Debug> Chain for GenericChain<Consensus> {
     async fn init(&mut self) {
     }
 
@@ -50,10 +39,10 @@ impl Chain for EthereumChain {
 
         // TODO: Add timer checks
 
-        let updates: Vec<LightClientUpdatePayload<MainnetConsensusSpec>> = updates
+        let updates: Vec<Consensus::UpdatePayload> = updates
             .into_iter()
             .map(|update| {
-                let update: LightClientUpdatePayload<MainnetConsensusSpec> =
+                let update: Consensus::UpdatePayload =
                     serde_json::from_slice(&update).expect("Failed to parse update");
                 update
             })
