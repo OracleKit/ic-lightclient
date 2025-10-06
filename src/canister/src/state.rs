@@ -17,7 +17,7 @@ pub struct GlobalState;
 
 impl GlobalState {
     pub async fn init() {
-        let mut ethereum = EthereumChain::new(ConfigManager::get("ethereum").unwrap());
+        let mut ethereum = EthereumChain::new(ConfigManager::get("ethereum").unwrap()).await;
         ethereum.init().await;
 
         CHAINS.with(|chains| {

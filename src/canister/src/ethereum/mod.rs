@@ -1,10 +1,9 @@
-mod checkpoint;
+mod config;
 
 use std::rc::Rc;
-use crate::{chain::Chain, ethereum::checkpoint::EthereumCheckpointManager};
+use crate::{chain::Chain, ethereum::config::EthereumConfigManager};
 use async_trait::async_trait;
 use ic_lightclient_ethereum::{
-    config::EthereumConfig,
     helios::spec::MainnetConsensusSpec,
     payload::LightClientUpdatePayload,
     EthereumLightClientConsensus,
@@ -13,17 +12,18 @@ use ic_lightclient_types::{ChainState, ChainUpdates};
 
 #[derive(Debug)]
 pub struct EthereumChain {
-    consensus: Option<EthereumLightClientConsensus<MainnetConsensusSpec>>,
-    config: Rc<EthereumConfig>,
+    consensus: EthereumLightClientConsensus<MainnetConsensusSpec, EthereumConfigManager>,
 }
 
 impl EthereumChain {
-    pub fn new(config: String) -> Self {
-        let config: EthereumConfig = serde_json::from_str(&config).unwrap();
+    pub async fn new(config: String) -> Self {
+        let mut config = EthereumConfigManager::new(config);
+        config.init().await;
+
+        let config = Rc::new(config);
 
         Self {
-            consensus: None,
-            config: Rc::new(config),
+            consensus: EthereumLightClientConsensus::new(config.clone())
         }
     }
 }
@@ -31,12 +31,10 @@ impl EthereumChain {
 #[async_trait(?Send)]
 impl Chain for EthereumChain {
     async fn init(&mut self) {
-        let checkpoint = EthereumCheckpointManager::new(&self.config).await;
-        self.consensus = Some(EthereumLightClientConsensus::new(checkpoint.checkpoint_block_root, self.config.clone()));
     }
 
     fn get_state(&self) -> ChainState {
-        let state = self.consensus.as_ref().unwrap().get_state();
+        let state = self.consensus.get_state();
         let state = serde_json::to_vec(&state).unwrap();
 
         ChainState { version: 1, state, tasks: vec![] }
@@ -63,10 +61,10 @@ impl Chain for EthereumChain {
 
         // TODO: Add check for conflicts
 
-        self.consensus.as_mut().unwrap().update_state(updates);
+        self.consensus.update_state(updates);
     }
 
     fn get_latest_block_hash(&self) -> String {
-        self.consensus.as_ref().unwrap().get_latest_block_hash()
+        self.consensus.get_latest_block_hash()
     }
 }

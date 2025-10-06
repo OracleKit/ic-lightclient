@@ -1,28 +1,30 @@
-use std::rc::Rc;
-use alloy_primitives::B256;
-use crate::{config::EthereumConfig, helios::{consensus::{apply_bootstrap, verify_bootstrap}, spec::ConsensusSpec, types::LightClientStore}, payload::{apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
+use std::{fmt::Debug, rc::Rc};
+use crate::{checkpoint::EthereumCheckpoint, config::EthereumConfig, helios::{consensus::{apply_bootstrap, verify_bootstrap}, spec::ConsensusSpec, types::LightClientStore}, payload::{apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
 
-#[derive(Debug)]
-pub struct EthereumLightClientConsensus<S: ConsensusSpec> {
-    is_bootstrapped: bool,
-    store: LightClientStore<S>,
-    checkpoint: B256, // block root
-    config: Rc<EthereumConfig>
+pub trait EthereumLightClientConfigManager : Debug {
+    fn get_config(&self) -> &EthereumConfig;
+    fn get_checkpoint(&self) -> &EthereumCheckpoint;
 }
 
-impl<S: ConsensusSpec> EthereumLightClientConsensus<S> {
-    pub fn new(checkpoint: B256, config: Rc<EthereumConfig>) -> Self {
+#[derive(Debug)]
+pub struct EthereumLightClientConsensus<S: ConsensusSpec, ConfigManager: EthereumLightClientConfigManager> {
+    is_bootstrapped: bool,
+    store: LightClientStore<S>,
+    config: Rc<ConfigManager>
+}
+
+impl<S: ConsensusSpec, ConfigManager: EthereumLightClientConfigManager> EthereumLightClientConsensus<S, ConfigManager> {
+    pub fn new(config: Rc<ConfigManager>) -> Self {
         Self {
             is_bootstrapped: false,
             store: LightClientStore::default(),
-            checkpoint,
             config
         }
     }
 
     pub fn get_state(&self) -> LightClientStatePayload<S> {
         if !self.is_bootstrapped {
-            let checkpoint_root = self.checkpoint.clone();
+            let checkpoint_root = self.config.get_checkpoint().checkpoint_block_root;
             let state = LightClientStateBootstrap { block_hash: checkpoint_root };
             LightClientStatePayload::Bootstrap(state)
         } else {
@@ -39,8 +41,8 @@ impl<S: ConsensusSpec> EthereumLightClientConsensus<S> {
                         panic!("Received bootstrap update after being bootstrapped");
                     }
 
-                    let checkpoint_root = self.checkpoint.clone();
-                    let forks = &self.config.forks;
+                    let checkpoint_root = self.config.get_checkpoint().checkpoint_block_root;
+                    let forks = &self.config.get_config().forks;
 
                     verify_bootstrap(&bootstrap, checkpoint_root, forks).unwrap();
                     apply_bootstrap(&mut self.store, &bootstrap);
@@ -56,7 +58,7 @@ impl<S: ConsensusSpec> EthereumLightClientConsensus<S> {
     
     pub fn get_latest_block_hash(&self) -> String {
         if !self.is_bootstrapped {
-            self.checkpoint.to_string()
+            self.config.get_checkpoint().checkpoint_block_root.to_string()
         } else {
             format!(
                 "Slot: {}, hash: {}",
