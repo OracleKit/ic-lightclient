@@ -1,24 +1,36 @@
 pub mod config;
 
-use std::{fmt::Debug, rc::Rc};
+use std::{fmt::Debug, marker::PhantomData, rc::Rc};
 use crate::chain::Chain;
 use async_trait::async_trait;
-use ic_lightclient_ethereum::consensus::{TConsensusManager, TEthereumLightClientConfigManager};
+use ic_lightclient_ethereum::consensus::{TConfigManager, TConsensusManager};
 use ic_lightclient_types::{ChainState, ChainUpdates};
 
-#[derive(Debug)]
-pub struct GenericChain<Consensus: TConsensusManager + Debug> {
-    consensus: Consensus,
+pub trait GenericChainBlueprint : Debug {
+    type Config: Debug;
+    type ConfigManager: TConfigManager<Self::Config>;
+    type ConsensusManager: TConsensusManager<Self::Config, Self::ConfigManager>;
 }
 
-impl<Consensus: TConsensusManager + Debug> GenericChain<Consensus> {
-    pub fn new(consensus: Consensus) -> Self {
-        Self { consensus }
+#[derive(Debug)]
+pub struct GenericChain<Blueprint: GenericChainBlueprint> {
+    consensus: Blueprint::ConsensusManager,
+    blueprint: PhantomData<Blueprint>
+}
+
+impl<Blueprint: GenericChainBlueprint> GenericChain<Blueprint> {
+    pub async fn new(config: String) -> Self {
+        let mut config_manager = Blueprint::ConfigManager::new(config);
+        config_manager.init().await;
+        let config_manager = Rc::new(config_manager);
+        let consensus = Blueprint::ConsensusManager::new(config_manager);
+
+        Self { consensus, blueprint: PhantomData }
     }
 }
 
 #[async_trait(?Send)]
-impl<Consensus: TConsensusManager + Debug> Chain for GenericChain<Consensus> {
+impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
     async fn init(&mut self) {
     }
 
@@ -39,10 +51,10 @@ impl<Consensus: TConsensusManager + Debug> Chain for GenericChain<Consensus> {
 
         // TODO: Add timer checks
 
-        let updates: Vec<Consensus::UpdatePayload> = updates
+        let updates: Vec<<Blueprint::ConsensusManager as TConsensusManager<Blueprint::Config, Blueprint::ConfigManager>>::UpdatePayload> = updates
             .into_iter()
             .map(|update| {
-                let update: Consensus::UpdatePayload =
+                let update: <Blueprint::ConsensusManager as TConsensusManager<Blueprint::Config, Blueprint::ConfigManager>>::UpdatePayload =
                     serde_json::from_slice(&update).expect("Failed to parse update");
                 update
             })

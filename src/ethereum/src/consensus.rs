@@ -1,39 +1,38 @@
 use std::{fmt::Debug, rc::Rc};
 use serde::{de::DeserializeOwned, Serialize};
-use crate::{checkpoint::EthereumCheckpoint, config::EthereumConfig, helios::{consensus::{apply_bootstrap, verify_bootstrap}, spec::ConsensusSpec, types::LightClientStore}, payload::{apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
+use crate::{config::{EthereumConfigPopulated}, helios::{consensus::{apply_bootstrap, verify_bootstrap}, spec::ConsensusSpec, types::LightClientStore}, payload::{apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
 
-pub trait TConfigManager {
+pub trait TConfigManager<Config> : Debug {
     fn new(config: String) -> Self;
     fn init(&mut self) -> impl std::future::Future<Output = ()>;
+    fn get_config(&self) -> &Config;
 }
 
-pub trait TEthereumLightClientConfigManager : Debug {
-    fn get_config(&self) -> &EthereumConfig;
-    fn get_checkpoint(&self) -> &EthereumCheckpoint;
-}
+// pub trait TEthereumLightClientConfigManager : Debug {
+//     fn get_config(&self) -> &EthereumConfig;
+//     fn get_checkpoint(&self) -> &EthereumCheckpoint;
+// }
 
-pub trait TConsensusManager {
+pub trait TConsensusManager<Config, ConfigManager: TConfigManager<Config>> : Debug {
     type StatePayload : Serialize + Debug;
     type UpdatePayload : DeserializeOwned + Debug;
-    type ConfigManager : TEthereumLightClientConfigManager;
 
-    fn new(config: Rc<Self::ConfigManager>) -> Self;
+    fn new(config: Rc<ConfigManager>) -> Self;
     fn get_state(&self) -> Self::StatePayload;
     fn update_state(&mut self, updates: Vec<Self::UpdatePayload>);
     fn get_latest_block_hash(&self) -> String;
 }
 
 #[derive(Debug)]
-pub struct EthereumLightClientConsensus<S: ConsensusSpec, ConfigManager: TEthereumLightClientConfigManager> {
+pub struct EthereumLightClientConsensus<S: ConsensusSpec, ConfigManager: TConfigManager<EthereumConfigPopulated>> {
     is_bootstrapped: bool,
     store: LightClientStore<S>,
     config: Rc<ConfigManager>
 }
 
-impl<S: ConsensusSpec + Serialize + DeserializeOwned, ConfigManager: TEthereumLightClientConfigManager> TConsensusManager for EthereumLightClientConsensus<S, ConfigManager> {
+impl<S: ConsensusSpec + Serialize + DeserializeOwned, ConfigManager: TConfigManager<EthereumConfigPopulated>> TConsensusManager<EthereumConfigPopulated, ConfigManager> for EthereumLightClientConsensus<S, ConfigManager> {
     type StatePayload = LightClientStatePayload<S>;
     type UpdatePayload = LightClientUpdatePayload<S>;
-    type ConfigManager = ConfigManager;
 
     fn new(config: Rc<ConfigManager>) -> Self {
         Self {
@@ -45,7 +44,7 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned, ConfigManager: TEthereumLi
 
     fn get_state(&self) -> LightClientStatePayload<S> {
         if !self.is_bootstrapped {
-            let checkpoint_root = self.config.get_checkpoint().checkpoint_block_root;
+            let checkpoint_root = self.config.get_config().checkpoint.as_ref().unwrap().checkpoint_block_root;
             let state = LightClientStateBootstrap { block_hash: checkpoint_root };
             LightClientStatePayload::<S>::Bootstrap(state)
         } else {
@@ -62,7 +61,7 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned, ConfigManager: TEthereumLi
                         panic!("Received bootstrap update after being bootstrapped");
                     }
 
-                    let checkpoint_root = self.config.get_checkpoint().checkpoint_block_root;
+                    let checkpoint_root = self.config.get_config().checkpoint.as_ref().unwrap().checkpoint_block_root;
                     let forks = &self.config.get_config().forks;
 
                     verify_bootstrap(&bootstrap, checkpoint_root, forks).unwrap();
@@ -79,7 +78,7 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned, ConfigManager: TEthereumLi
     
     fn get_latest_block_hash(&self) -> String {
         if !self.is_bootstrapped {
-            self.config.get_checkpoint().checkpoint_block_root.to_string()
+            self.config.get_config().checkpoint.as_ref().unwrap().checkpoint_block_root.to_string()
         } else {
             format!(
                 "Slot: {}, hash: {}",

@@ -1,6 +1,6 @@
-use ic_lightclient_ethereum::{consensus::{TConfigManager, TConsensusManager}, helios::spec::MainnetConsensusSpec, EthereumLightClientConsensus};
+use ic_lightclient_ethereum::{config::EthereumConfigPopulated, helios::spec::MainnetConsensusSpec, EthereumLightClientConsensus};
 
-use crate::{chain::Chain, config::ConfigManager, ethereum::{config::EthereumConfigManager, GenericChain}};
+use crate::{chain::Chain, config::ConfigManager, ethereum::{config::EthereumConfigManager, GenericChain, GenericChainBlueprint}};
 use std::{
     cell::{OnceCell, RefCell},
     rc::Rc,
@@ -15,23 +15,21 @@ pub struct ChainState {
     pub ethereum: Box<dyn Chain>,
 }
 
-type EthereumChain = GenericChain<EthereumLightClientConsensus<MainnetConsensusSpec, EthereumConfigManager>>;
+#[derive(Debug)]
+struct EthereumChainBlueprint;
 
-async fn generate_ethereum_chain(config: String) -> EthereumChain {
-    let mut config = EthereumConfigManager::new(config);
-    config.init().await;
-    let config = Rc::new(config);
-
-    let consensus = EthereumLightClientConsensus::new(config);
-
-    EthereumChain::new(consensus)
+impl GenericChainBlueprint for EthereumChainBlueprint {
+    type Config = EthereumConfigPopulated;
+    type ConfigManager = EthereumConfigManager;
+    type ConsensusManager = EthereumLightClientConsensus<MainnetConsensusSpec, EthereumConfigManager>;
 }
   
 pub struct GlobalState;
 
 impl GlobalState {
     pub async fn init() {
-        let mut ethereum = generate_ethereum_chain(ConfigManager::get("ethereum").unwrap()).await;
+        let config = ConfigManager::get("ethereum").unwrap();
+        let mut ethereum = GenericChain::<EthereumChainBlueprint>::new(config).await;
         ethereum.init().await;
 
         CHAINS.with(|chains| {
