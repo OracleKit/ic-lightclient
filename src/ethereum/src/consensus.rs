@@ -1,27 +1,7 @@
 use std::{fmt::Debug, rc::Rc};
+use ic_lightclient_types::traits::{TConfigManager, TConsensusManager};
 use serde::{de::DeserializeOwned, Serialize};
 use crate::{config::{EthereumConfigPopulated}, helios::{consensus::{apply_bootstrap, verify_bootstrap}, spec::ConsensusSpec, types::LightClientStore}, payload::{apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
-
-pub trait TConfigManager<Config> : Debug {
-    fn new(config: String) -> Self;
-    fn init(&mut self) -> impl std::future::Future<Output = ()>;
-    fn get_config(&self) -> &Config;
-}
-
-// pub trait TEthereumLightClientConfigManager : Debug {
-//     fn get_config(&self) -> &EthereumConfig;
-//     fn get_checkpoint(&self) -> &EthereumCheckpoint;
-// }
-
-pub trait TConsensusManager<Config, ConfigManager: TConfigManager<Config>> : Debug {
-    type StatePayload : Serialize + Debug;
-    type UpdatePayload : DeserializeOwned + Debug;
-
-    fn new(config: Rc<ConfigManager>) -> Self;
-    fn get_state(&self) -> Self::StatePayload;
-    fn update_state(&mut self, updates: Vec<Self::UpdatePayload>);
-    fn get_latest_block_hash(&self) -> String;
-}
 
 #[derive(Debug)]
 pub struct EthereumLightClientConsensus<S: ConsensusSpec, ConfigManager: TConfigManager<EthereumConfigPopulated>> {

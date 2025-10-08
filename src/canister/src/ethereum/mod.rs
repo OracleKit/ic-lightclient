@@ -3,8 +3,7 @@ pub mod config;
 use std::{fmt::Debug, marker::PhantomData, rc::Rc};
 use crate::chain::Chain;
 use async_trait::async_trait;
-use ic_lightclient_ethereum::consensus::{TConfigManager, TConsensusManager};
-use ic_lightclient_types::{ChainState, ChainUpdates};
+use ic_lightclient_types::{traits::{TConfigManager, TConsensusManager}, ChainState, ChainUpdates};
 
 pub trait GenericChainBlueprint : Debug {
     type Config: Debug;
@@ -12,7 +11,6 @@ pub trait GenericChainBlueprint : Debug {
     type ConsensusManager: TConsensusManager<Self::Config, Self::ConfigManager>;
 }
 
-#[derive(Debug)]
 pub struct GenericChain<Blueprint: GenericChainBlueprint> {
     consensus: Blueprint::ConsensusManager,
     blueprint: PhantomData<Blueprint>
@@ -20,8 +18,7 @@ pub struct GenericChain<Blueprint: GenericChainBlueprint> {
 
 impl<Blueprint: GenericChainBlueprint> GenericChain<Blueprint> {
     pub async fn new(config: String) -> Self {
-        let mut config_manager = Blueprint::ConfigManager::new(config);
-        config_manager.init().await;
+        let config_manager = Blueprint::ConfigManager::new(config).await;
         let config_manager = Rc::new(config_manager);
         let consensus = Blueprint::ConsensusManager::new(config_manager);
 

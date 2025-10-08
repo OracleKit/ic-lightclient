@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Context, Result};
-use ic_lightclient_types::config::{EthereumConfig, IcpConfig};
+use ic_lightclient_ethereum::config::EthereumConfig;
+use ic_lightclient_types::config::IcpConfig;
 use serde::Deserialize;
 use std::{fs::read_to_string, sync::OnceLock};
 

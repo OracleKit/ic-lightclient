@@ -3,24 +3,18 @@ use ic_cdk::api::management_canister::http_request::{
 };
 use ic_lightclient_ethereum::{
     checkpoint::{parse_checkpointz_output_to_config},
-    config::{EthereumConfig, EthereumConfigPopulated}, consensus::{TConfigManager},
+    config::{EthereumConfig, EthereumConfigPopulated},
 };
+use ic_lightclient_types::traits::TConfigManager;
 
-#[derive(Debug)]
 pub struct EthereumConfigManager {
     config: EthereumConfigPopulated,
 }
 
 impl TConfigManager<EthereumConfigPopulated> for EthereumConfigManager {
-    fn new(config: String) -> Self {
+    async fn new(config: String) -> Self {
         let config: EthereumConfig = serde_json::from_str(&config).unwrap();
-        Self { 
-            config: config.into()
-        }
-    }
-
-    async fn init(&mut self) {
-        let url = self.config.checkpoint_sync_host.clone();
+        let url = config.checkpoint_sync_host.clone();
         let url = format!("{}/checkpointz/v1/beacon/slots", url);
 
         let res = http_request(
@@ -39,7 +33,12 @@ impl TConfigManager<EthereumConfigPopulated> for EthereumConfigManager {
         .0;
 
         let checkpoint = parse_checkpointz_output_to_config(res.body);
-        self.config.checkpoint = Some(checkpoint);
+        let mut populated_config: EthereumConfigPopulated = config.into();
+        populated_config.checkpoint = Some(checkpoint);
+        
+        Self {
+            config: populated_config
+        }
     }
     
     fn get_config(&self) -> &EthereumConfigPopulated {

@@ -2,6 +2,7 @@ use candid::{CandidType, Deserialize};
 use serde::Serialize;
 
 pub mod config;
+pub mod traits;
 
 #[derive(CandidType, Serialize, Deserialize, Debug, Default)]
 pub struct ChainState {

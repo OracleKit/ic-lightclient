@@ -2068,6 +2068,7 @@ dependencies = [
  "ethereum_ssz_derive",
  "eyre",
  "getrandom 0.2.16",
+ "ic-lightclient-types",
  "ic_bls12_381",
  "serde",
  "serde_json",
@@ -2115,6 +2116,7 @@ dependencies = [
 name = "ic-lightclient-tool"
 version = "0.1.0"
 dependencies = [
+ "ic-lightclient-ethereum",
  "ic-lightclient-oc-utils",
  "ic-lightclient-types",
  "serde",
@@ -2129,7 +2131,6 @@ version = "0.1.0"
 dependencies = [
  "alloy-primitives",
  "candid",
- "ic-lightclient-ethereum",
  "ic_principal",
  "serde",
 ]
