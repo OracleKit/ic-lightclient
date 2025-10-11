@@ -1,4 +1,4 @@
-use crate::{chain::Chain, config::ConfigManager, ethereum::EthereumChain};
+use crate::{blueprint::EthereumChainBlueprint, chain::Chain, config::ConfigManager, ethereum::GenericChain};
 use std::{
     cell::{OnceCell, RefCell},
     rc::Rc,
@@ -8,7 +8,6 @@ thread_local! {
     static CHAINS: OnceCell<Rc<RefCell<ChainState>>> = OnceCell::new();
 }
 
-#[derive(Debug)]
 pub struct ChainState {
     pub ethereum: Box<dyn Chain>,
 }
@@ -17,13 +16,14 @@ pub struct GlobalState;
 
 impl GlobalState {
     pub async fn init() {
-        let mut ethereum = EthereumChain::new(ConfigManager::get("ethereum").unwrap());
+        let config = ConfigManager::get("ethereum").unwrap();
+        let mut ethereum = GenericChain::<EthereumChainBlueprint>::new(config).await;
         ethereum.init().await;
 
         CHAINS.with(|chains| {
             chains
                 .set(Rc::new(RefCell::new(ChainState { ethereum: Box::new(ethereum) })))
-                .unwrap();
+                .unwrap_or_else(|_| panic!("GlobalState already initialized"));
         });
     }
 

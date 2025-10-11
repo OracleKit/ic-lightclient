@@ -1,64 +1,40 @@
-mod checkpoint;
+pub mod config;
 
-use crate::{chain::Chain, ethereum::checkpoint::EthereumCheckpointManager};
+use crate::chain::Chain;
 use async_trait::async_trait;
-use ic_lightclient_ethereum::{
-    checkpoint::EthereumCheckpoint,
-    config::EthereumConfig,
-    helios::{
-        consensus::{apply_bootstrap, verify_bootstrap},
-        spec::MainnetConsensusSpec,
-        types::LightClientStore,
-    },
-    payload::{
-        apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload,
-        LightClientUpdatePayload,
-    },
+use ic_lightclient_types::{
+    traits::{self, ConfigManager, ConsensusManager},
+    ChainState, ChainUpdates,
 };
-use ic_lightclient_types::{ChainState, ChainUpdates};
+use std::{fmt::Debug, marker::PhantomData};
 
-#[derive(Debug)]
-pub struct EthereumChain {
-    is_bootstrapped: bool,
-    store: LightClientStore<MainnetConsensusSpec>,
-    checkpoint: Option<EthereumCheckpoint>,
-    config: EthereumConfig,
+pub trait GenericChainBlueprint: Debug {
+    type Config: Debug + 'static;
+    type ConfigManager: traits::ConfigManager<Self::Config> + 'static;
+    type ConsensusManager: traits::ConsensusManager<Self::Config> + 'static;
 }
 
-impl EthereumChain {
-    pub fn new(config: String) -> Self {
-        let config: EthereumConfig = serde_json::from_str(&config).unwrap();
+pub struct GenericChain<Blueprint: GenericChainBlueprint> {
+    consensus: Blueprint::ConsensusManager,
+    blueprint: PhantomData<Blueprint>,
+}
 
-        Self {
-            is_bootstrapped: false,
-            store: LightClientStore::<MainnetConsensusSpec>::default(),
-            checkpoint: None,
-            config,
-        }
+impl<Blueprint: GenericChainBlueprint> GenericChain<Blueprint> {
+    pub async fn new(config: String) -> Self {
+        let config_manager = Blueprint::ConfigManager::new(config).await;
+        let consensus = Blueprint::ConsensusManager::new(Box::new(config_manager));
+
+        Self { consensus, blueprint: PhantomData }
     }
 }
 
-#[async_trait]
-impl Chain for EthereumChain {
-    async fn init(&mut self) {
-        self.checkpoint = Some(EthereumCheckpointManager::new(&self.config).await);
-    }
+#[async_trait(?Send)]
+impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
+    async fn init(&mut self) {}
 
     fn get_state(&self) -> ChainState {
-        let state = if !self.is_bootstrapped {
-            let checkpoint_root = self.checkpoint.as_ref().unwrap().checkpoint_block_root.clone();
-            let state = LightClientStateBootstrap { block_hash: checkpoint_root };
-            let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Bootstrap(state))
-                .expect("Failed to serialize state");
-
-            state
-        } else {
-            let state = LightClientStateActive { store: self.store.clone() };
-            let state = serde_json::to_vec(&LightClientStatePayload::<MainnetConsensusSpec>::Active(state))
-                .expect("Failed to serialize state");
-
-            state
-        };
+        let state = self.consensus.get_state();
+        let state = serde_json::to_vec(&state).unwrap();
 
         ChainState { version: 1, state, tasks: vec![] }
     }
@@ -73,48 +49,17 @@ impl Chain for EthereumChain {
 
         // TODO: Add timer checks
 
-        let updates: Vec<LightClientUpdatePayload<MainnetConsensusSpec>> = updates
+        let updates = updates
             .into_iter()
-            .map(|update| {
-                let update: LightClientUpdatePayload<MainnetConsensusSpec> =
-                    serde_json::from_slice(&update).expect("Failed to parse update");
-                update
-            })
+            .map(|update| serde_json::from_slice(&update).expect("Failed to parse update"))
             .collect();
 
         // TODO: Add check for conflicts
 
-        for update in updates {
-            match update {
-                LightClientUpdatePayload::Bootstrap(bootstrap) => {
-                    if self.is_bootstrapped {
-                        panic!("Received bootstrap update after being bootstrapped");
-                    }
-
-                    let checkpoint_root = self.checkpoint.as_ref().unwrap().checkpoint_block_root.clone();
-                    let forks = &self.config.forks;
-
-                    verify_bootstrap(&bootstrap, checkpoint_root, forks).unwrap();
-                    apply_bootstrap(&mut self.store, &bootstrap);
-                    self.is_bootstrapped = true;
-                }
-
-                LightClientUpdatePayload::Update(update) => {
-                    apply_update_payload(&mut self.store, update);
-                }
-            }
-        }
+        self.consensus.update_state(updates);
     }
 
     fn get_latest_block_hash(&self) -> String {
-        if !self.is_bootstrapped {
-            self.checkpoint.as_ref().unwrap().checkpoint_block_root.to_string()
-        } else {
-            format!(
-                "Slot: {}, hash: {}",
-                self.store.optimistic_header.beacon.slot,
-                self.store.optimistic_header.beacon.state_root.to_string()
-            )
-        }
+        self.consensus.get_latest_block_hash()
     }
 }

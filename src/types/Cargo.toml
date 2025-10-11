@@ -6,6 +6,5 @@ edition = "2021"
 [dependencies]
 candid.workspace = true
 serde.workspace = true
-ic-lightclient-ethereum = { path = "../ethereum" }
 ic_principal.workspace = true
 alloy-primitives.workspace = true

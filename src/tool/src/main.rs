@@ -1,7 +1,8 @@
 use std::fs::read_to_string;
 
+use ic_lightclient_ethereum::config::EthereumConfig;
 use ic_lightclient_oc_utils::IcpAgent;
-use ic_lightclient_types::config::{EthereumConfig, IcpConfig};
+use ic_lightclient_types::config::IcpConfig;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]

@@ -1,3 +1,4 @@
+mod blueprint;
 mod chain;
 mod config;
 mod ethereum;

@@ -1,7 +1,7 @@
 use alloy_primitives::B256;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct EthereumCheckpoint {
     pub checkpoint_block_root: B256,
 }
