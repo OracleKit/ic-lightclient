@@ -1,5 +1,8 @@
 use crate::{blueprint::EthereumChainBlueprint, chain::Chain, config::ConfigManager, ethereum::GenericChain};
-use std::{cell::{OnceCell, RefCell}, rc::Rc};
+use std::{
+    cell::{OnceCell, RefCell},
+    rc::Rc,
+};
 
 thread_local! {
     static CHAINS: OnceCell<Rc<RefCell<ChainState>>> = OnceCell::new();

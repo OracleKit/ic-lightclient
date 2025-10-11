@@ -1,25 +1,32 @@
-use std::{fmt::Debug, rc::Rc};
-use ic_lightclient_types::traits::{TConfigManager, TConsensusManager};
+use crate::{
+    config::EthereumConfigPopulated,
+    helios::{
+        consensus::{apply_bootstrap, verify_bootstrap},
+        spec::ConsensusSpec,
+        types::LightClientStore,
+    },
+    payload::{
+        apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload,
+        LightClientUpdatePayload,
+    },
+};
+use ic_lightclient_types::traits::{ConfigManagerDyn, ConsensusManager};
 use serde::{de::DeserializeOwned, Serialize};
-use crate::{config::{EthereumConfigPopulated}, helios::{consensus::{apply_bootstrap, verify_bootstrap}, spec::ConsensusSpec, types::LightClientStore}, payload::{apply_update_payload, LightClientStateActive, LightClientStateBootstrap, LightClientStatePayload, LightClientUpdatePayload}};
 
-#[derive(Debug)]
-pub struct EthereumLightClientConsensus<S: ConsensusSpec, ConfigManager: TConfigManager<EthereumConfigPopulated>> {
+pub struct EthereumLightClientConsensus<S: ConsensusSpec> {
     is_bootstrapped: bool,
     store: LightClientStore<S>,
-    config: Rc<ConfigManager>
+    config: Box<dyn ConfigManagerDyn<EthereumConfigPopulated>>,
 }
 
-impl<S: ConsensusSpec + Serialize + DeserializeOwned, ConfigManager: TConfigManager<EthereumConfigPopulated>> TConsensusManager<EthereumConfigPopulated, ConfigManager> for EthereumLightClientConsensus<S, ConfigManager> {
+impl<S: ConsensusSpec + Serialize + DeserializeOwned> ConsensusManager<EthereumConfigPopulated>
+    for EthereumLightClientConsensus<S>
+{
     type StatePayload = LightClientStatePayload<S>;
     type UpdatePayload = LightClientUpdatePayload<S>;
 
-    fn new(config: Rc<ConfigManager>) -> Self {
-        Self {
-            is_bootstrapped: false,
-            store: LightClientStore::default(),
-            config
-        }
+    fn new(config: Box<dyn ConfigManagerDyn<EthereumConfigPopulated>>) -> Self {
+        Self { is_bootstrapped: false, store: LightClientStore::default(), config }
     }
 
     fn get_state(&self) -> LightClientStatePayload<S> {
@@ -55,10 +62,16 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned, ConfigManager: TConfigMana
             }
         }
     }
-    
+
     fn get_latest_block_hash(&self) -> String {
         if !self.is_bootstrapped {
-            self.config.get_config().checkpoint.as_ref().unwrap().checkpoint_block_root.to_string()
+            self.config
+                .get_config()
+                .checkpoint
+                .as_ref()
+                .unwrap()
+                .checkpoint_block_root
+                .to_string()
         } else {
             format!(
                 "Slot: {}, hash: {}",

@@ -2,16 +2,16 @@ use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod,
 };
 use ic_lightclient_ethereum::{
-    checkpoint::{parse_checkpointz_output_to_config},
+    checkpoint::parse_checkpointz_output_to_config,
     config::{EthereumConfig, EthereumConfigPopulated},
 };
-use ic_lightclient_types::traits::TConfigManager;
+use ic_lightclient_types::traits::ConfigManager;
 
 pub struct EthereumConfigManager {
     config: EthereumConfigPopulated,
 }
 
-impl TConfigManager<EthereumConfigPopulated> for EthereumConfigManager {
+impl ConfigManager<EthereumConfigPopulated> for EthereumConfigManager {
     async fn new(config: String) -> Self {
         let config: EthereumConfig = serde_json::from_str(&config).unwrap();
         let url = config.checkpoint_sync_host.clone();
@@ -35,12 +35,10 @@ impl TConfigManager<EthereumConfigPopulated> for EthereumConfigManager {
         let checkpoint = parse_checkpointz_output_to_config(res.body);
         let mut populated_config: EthereumConfigPopulated = config.into();
         populated_config.checkpoint = Some(checkpoint);
-        
-        Self {
-            config: populated_config
-        }
+
+        Self { config: populated_config }
     }
-    
+
     fn get_config(&self) -> &EthereumConfigPopulated {
         &self.config
     }
