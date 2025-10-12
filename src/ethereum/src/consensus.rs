@@ -16,16 +16,15 @@ use serde::{de::DeserializeOwned, Serialize};
 pub struct EthereumLightClientConsensus<S: ConsensusSpec> {
     is_bootstrapped: bool,
     store: LightClientStore<S>,
-    config: Box<dyn ConfigManagerDyn<EthereumConfigPopulated>>,
+    config: Box<dyn ConfigManagerDyn<Config = EthereumConfigPopulated>>,
 }
 
-impl<S: ConsensusSpec + Serialize + DeserializeOwned> ConsensusManager<EthereumConfigPopulated>
-    for EthereumLightClientConsensus<S>
-{
+impl<S: ConsensusSpec + Serialize + DeserializeOwned> ConsensusManager for EthereumLightClientConsensus<S> {
+    type Config = EthereumConfigPopulated;
     type StatePayload = LightClientStatePayload<S>;
     type UpdatePayload = LightClientUpdatePayload<S>;
 
-    fn new(config: Box<dyn ConfigManagerDyn<EthereumConfigPopulated>>) -> Self {
+    fn new(config: Box<dyn ConfigManagerDyn<Config = EthereumConfigPopulated>>) -> Self {
         Self { is_bootstrapped: false, store: LightClientStore::default(), config }
     }
 

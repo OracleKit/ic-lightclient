@@ -9,9 +9,8 @@ use ic_lightclient_types::{
 use std::{fmt::Debug, marker::PhantomData};
 
 pub trait GenericChainBlueprint: Debug {
-    type Config: Debug + 'static;
-    type ConfigManager: traits::ConfigManager<Self::Config> + 'static;
-    type ConsensusManager: traits::ConsensusManager<Self::Config> + 'static;
+    type ConfigManager: traits::ConfigManager + 'static;
+    type ConsensusManager: traits::ConsensusManager<Config = <Self::ConfigManager as ConfigManager>::Config> + 'static;
 }
 
 pub struct GenericChain<Blueprint: GenericChainBlueprint> {
