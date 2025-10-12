@@ -11,7 +11,9 @@ pub struct EthereumConfigManager {
     config: EthereumConfigPopulated,
 }
 
-impl ConfigManager<EthereumConfigPopulated> for EthereumConfigManager {
+impl ConfigManager for EthereumConfigManager {
+    type Config = EthereumConfigPopulated;
+
     async fn new(config: String) -> Self {
         let config: EthereumConfig = serde_json::from_str(&config).unwrap();
         let url = config.checkpoint_sync_host.clone();
