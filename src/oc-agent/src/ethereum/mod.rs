@@ -13,9 +13,8 @@ use ic_lightclient_ethereum::{
         spec::MainnetConsensusSpec,
         types::{FinalityUpdate, Forks, GenericUpdate, LightClientStore, OptimisticUpdate, Update},
     },
-    payload::LightClientStatePayload,
+    payload::{LightClientStatePayload, LightClientUpdatePayload},
 };
-use ic_lightclient_types::{ChainState, ChainUpdates};
 use std::time::SystemTime;
 
 const MAX_REQUEST_LIGHT_CLIENT_UPDATES: u8 = 128;
@@ -35,7 +34,7 @@ impl EthereumChain {
         Self::default()
     }
 
-    pub async fn init(&mut self, initial_state: ChainState) {
+    pub async fn init(&mut self, canister_state: LightClientStatePayload<MainnetConsensusSpec>) {
         // TODO supposed to change. config should be fetched from canister.
         let config = Config::ethereum();
 
@@ -46,8 +45,6 @@ impl EthereumChain {
         self.genesis_validator_root = config.genesis_validator_root;
         self.forks = config.forks;
 
-        let canister_state: LightClientStatePayload<MainnetConsensusSpec> =
-            serde_json::from_slice(&initial_state.state).unwrap();
         let LightClientStatePayload::Bootstrap(canister_state) = canister_state else {
             panic!("Canister not in bootstrap state.");
         };
@@ -59,19 +56,18 @@ impl EthereumChain {
         println!("Ethereum light client initialized with bootstrap data.");
     }
 
-    pub async fn get_updates(&mut self, state: ChainState) -> Option<ChainUpdates> {
+    pub async fn get_updates(
+        &mut self,
+        canister_state: LightClientStatePayload<MainnetConsensusSpec>,
+    ) -> Option<Vec<LightClientUpdatePayload<MainnetConsensusSpec>>> {
         self.check_and_sync().await;
 
-        let canister_state: LightClientStatePayload<MainnetConsensusSpec> =
-            serde_json::from_slice(&state.state).unwrap();
         // check for next sync committee
 
         let updates = self.state_differ.get_diff_updates(&canister_state, &self.light_client_store);
-        let serialized_updates: Vec<Vec<u8>> =
-            updates.into_iter().map(|update| serde_json::to_vec(&update).unwrap()).collect();
 
-        if serialized_updates.len() > 0 {
-            Some(ChainUpdates { version: 1, updates: serialized_updates })
+        if updates.len() > 0 {
+            Some(updates)
         } else {
             None
         }

@@ -1,5 +1,5 @@
 use ic_agent::{export::Principal, Agent};
-use ic_lightclient_types::{config::IcpConfig, CanisterState, CanisterUpdates};
+use ic_lightclient_types::config::IcpConfig;
 use ic_utils::{call::SyncCall, Canister};
 use std::sync::OnceLock;
 
@@ -33,7 +33,7 @@ impl IcpAgent {
             .expect("Failed to create canister")
     }
 
-    pub async fn get_canister_state() -> CanisterState {
+    pub async fn get_canister_state() -> Vec<u8> {
         let canister = IcpAgent::canister();
         let (state,) = canister
             .query("get_state")
@@ -45,7 +45,7 @@ impl IcpAgent {
         state
     }
 
-    pub async fn update_canister_state(updates: CanisterUpdates) {
+    pub async fn update_canister_state(updates: Vec<u8>) {
         let canister = IcpAgent::canister();
         let _: () = canister
             .update("update_state")

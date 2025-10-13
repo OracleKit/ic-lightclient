@@ -1,7 +1,3 @@
-type CanisterState = record { ethereum : ChainState; version : nat64 };
-type CanisterUpdates = record { ethereum : ChainUpdates; version : nat64 };
-type ChainState = record { tasks : vec blob; version : nat64; state : blob };
-type ChainUpdates = record { version : nat64; updates : vec blob };
 type HttpRequest = record {
   url : text;
   method : text;
@@ -16,10 +12,10 @@ type HttpResponse = record {
 service : {
   get_config : (text) -> (opt text) query;
   get_latest_block_hash : () -> (text) query;
-  get_state : () -> (CanisterState) query;
+  get_state : () -> (blob) query;
   http_request : (HttpRequest) -> (HttpResponse) query;
   init : () -> ();
   list_configs : () -> (vec text) query;
   set_config : (text, text) -> ();
-  update_state : (CanisterUpdates) -> ();
+  update_state : (blob) -> ();
 }

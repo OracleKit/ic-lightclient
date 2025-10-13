@@ -8,7 +8,7 @@ mod util;
 
 use anyhow::Result;
 use chain::ChainManager;
-use ic_lightclient_types::CanisterUpdates;
+use ic_lightclient_wire::{StatePayloadParser, UpdatePayloadMarshaller};
 use icp::ICP;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -24,22 +24,27 @@ async fn main() -> Result<()> {
 
     ICP::init().await;
     let state = ICP::get_canister_state().await;
+    let state = StatePayloadParser::new(state).unwrap();
 
     let chain_manager = ChainManager::new();
-    chain_manager.ethereum.try_lock().unwrap().init(state.ethereum).await;
+    chain_manager.ethereum.try_lock().unwrap().init(state.state(1).unwrap()).await;
 
     loop {
         let state = ICP::get_canister_state().await;
+        let state = StatePayloadParser::new(state).unwrap();
         let chain_manager = chain_manager.clone();
 
         tokio::spawn(async move {
             let Ok(mut ethereum) = chain_manager.ethereum.try_lock() else {
                 return;
             };
-            let updates = ethereum.get_updates(state.ethereum).await;
+            let updates = ethereum.get_updates(state.state(1).unwrap()).await;
 
             if let Some(updates) = updates {
-                ICP::update_canister_state(CanisterUpdates { version: 1, ethereum: updates }).await;
+                let mut marshaller = UpdatePayloadMarshaller::new();
+                marshaller.updates(1, updates).unwrap();
+
+                ICP::update_canister_state(marshaller.build().unwrap()).await;
             }
         });
 

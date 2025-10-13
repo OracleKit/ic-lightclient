@@ -2051,6 +2051,7 @@ dependencies = [
  "ic-cdk-timers",
  "ic-lightclient-ethereum",
  "ic-lightclient-types",
+ "ic-lightclient-wire",
  "serde",
  "serde_json",
  "toml",
@@ -2092,6 +2093,7 @@ dependencies = [
  "ic-agent",
  "ic-lightclient-ethereum",
  "ic-lightclient-types",
+ "ic-lightclient-wire",
  "ic-utils",
  "reqwest",
  "serde",
@@ -2133,6 +2135,15 @@ dependencies = [
  "candid",
  "ic_principal",
  "serde",
+]
+
+[[package]]
+name = "ic-lightclient-wire"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
