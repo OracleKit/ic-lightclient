@@ -5,6 +5,7 @@ use ic_lightclient_ethereum::{helios::spec::MainnetConsensusSpec, EthereumLightC
 pub struct EthereumChainBlueprint;
 
 impl GenericChainBlueprint for EthereumChainBlueprint {
+    const CHAIN_UID: u16 = 1;
     type ConfigManager = EthereumConfigManager;
     type ConsensusManager = EthereumLightClientConsensus<MainnetConsensusSpec>;
 }

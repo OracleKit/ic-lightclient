@@ -2,13 +2,12 @@ pub mod config;
 
 use crate::chain::Chain;
 use async_trait::async_trait;
-use ic_lightclient_types::{
-    traits::{self, ConfigManager, ConsensusManager},
-    ChainState, ChainUpdates,
-};
+use ic_lightclient_types::traits::{self, ConfigManager, ConsensusManager};
+use ic_lightclient_wire::{StatePayloadMarshaller, UpdatePayloadParser};
 use std::{fmt::Debug, marker::PhantomData};
 
 pub trait GenericChainBlueprint: Debug {
+    const CHAIN_UID: u16;
     type ConfigManager: traits::ConfigManager + 'static;
     type ConsensusManager: traits::ConsensusManager<Config = <Self::ConfigManager as ConfigManager>::Config> + 'static;
 }
@@ -31,11 +30,9 @@ impl<Blueprint: GenericChainBlueprint> GenericChain<Blueprint> {
 impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
     async fn init(&mut self) {}
 
-    fn get_state(&self) -> ChainState {
+    fn get_state(&self, marshaller: &mut StatePayloadMarshaller) {
         let state = self.consensus.get_state();
-        let state = serde_json::to_vec(&state).unwrap();
-
-        ChainState { version: 1, state, tasks: vec![] }
+        marshaller.state(Blueprint::CHAIN_UID, state).unwrap();
     }
 
     // pub fn are_updates_valid(&self, _: ChainUpdates) -> bool {
@@ -43,18 +40,12 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
     //     true
     // }
 
-    fn update_state(&mut self, updates: ChainUpdates) {
-        let updates = updates.updates;
+    fn update_state(&mut self, updates: &UpdatePayloadParser) {
 
         // TODO: Add timer checks
-
-        let updates = updates
-            .into_iter()
-            .map(|update| serde_json::from_slice(&update).expect("Failed to parse update"))
-            .collect();
-
         // TODO: Add check for conflicts
 
+        let updates = updates.updates(Blueprint::CHAIN_UID).unwrap();
         self.consensus.update_state(updates);
     }
 

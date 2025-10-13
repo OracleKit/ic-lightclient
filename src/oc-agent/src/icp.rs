@@ -1,6 +1,5 @@
 use crate::config::Config;
 use ic_agent::{export::Principal, Agent};
-use ic_lightclient_types::{CanisterState, CanisterUpdates};
 use ic_utils::{call::SyncCall, Canister};
 use std::sync::OnceLock;
 
@@ -36,7 +35,7 @@ impl ICP {
             .expect("Failed to create canister")
     }
 
-    pub async fn get_canister_state() -> CanisterState {
+    pub async fn get_canister_state() -> Vec<u8> {
         let canister = ICP::canister();
         let (state,) = canister
             .query("get_state")
@@ -48,7 +47,7 @@ impl ICP {
         state
     }
 
-    pub async fn update_canister_state(updates: CanisterUpdates) {
+    pub async fn update_canister_state(updates: Vec<u8>) {
         let canister = ICP::canister();
         let _: () = canister
             .update("update_state")

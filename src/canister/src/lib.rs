@@ -6,7 +6,7 @@ mod metrics;
 mod state;
 
 use crate::config::ConfigManager;
-use ic_lightclient_types::{CanisterState, CanisterUpdates};
+use ic_lightclient_wire::{StatePayloadMarshaller, UpdatePayloadParser};
 use metrics::{serve_metrics, HttpRequest, HttpResponse};
 use state::GlobalState;
 
@@ -18,19 +18,21 @@ fn get_latest_block_hash() -> String {
 }
 
 #[ic_cdk::query]
-fn get_state() -> CanisterState {
+fn get_state() -> Vec<u8> {
     let chains = GlobalState::chains();
-    let ethereum_state = chains.borrow().ethereum.get_state();
-
-    CanisterState { version: 1, ethereum: ethereum_state }
+    let mut marshaller = StatePayloadMarshaller::new();
+    
+    chains.borrow().ethereum.get_state(&mut marshaller);
+    marshaller.build().unwrap()
 }
 
 #[ic_cdk::update]
-fn update_state(updates: CanisterUpdates) {
+fn update_state(updates: Vec<u8>) {
     let start = ic_cdk::api::performance_counter(0);
 
+    let parser = UpdatePayloadParser::new(updates).unwrap();
     let chains = GlobalState::chains();
-    chains.borrow_mut().ethereum.update_state(updates.ethereum);
+    chains.borrow_mut().ethereum.update_state(&parser);
 
     let end = ic_cdk::api::performance_counter(0);
     let cycles = ic_cdk::api::canister_balance();

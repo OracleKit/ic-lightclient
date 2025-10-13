@@ -14,6 +14,7 @@ ic-utils.workspace = true
 reqwest.workspace = true
 alloy-rpc-types-eth.workspace = true
 ic-lightclient-ethereum = { path = "../ethereum" }
+ic-lightclient-wire = { path = "../wire" }
 serde_json.workspace = true
 anyhow.workspace = true
 clap.workspace = true
