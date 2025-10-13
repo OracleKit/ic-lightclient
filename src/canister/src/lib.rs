@@ -21,7 +21,7 @@ fn get_latest_block_hash() -> String {
 fn get_state() -> Vec<u8> {
     let chains = GlobalState::chains();
     let mut marshaller = StatePayloadMarshaller::new();
-    
+
     chains.borrow().ethereum.get_state(&mut marshaller);
     marshaller.build().unwrap()
 }

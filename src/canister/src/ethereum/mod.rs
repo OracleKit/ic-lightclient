@@ -41,7 +41,6 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
     // }
 
     fn update_state(&mut self, updates: &UpdatePayloadParser) {
-
         // TODO: Add timer checks
         // TODO: Add check for conflicts
 

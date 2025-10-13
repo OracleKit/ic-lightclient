@@ -1,5 +1,5 @@
-mod update;
 mod state;
+mod update;
 
-pub use update::{UpdatePayloadMarshaller, UpdatePayloadParser};
 pub use state::{StatePayloadMarshaller, StatePayloadParser};
+pub use update::{UpdatePayloadMarshaller, UpdatePayloadParser};

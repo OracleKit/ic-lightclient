@@ -15,7 +15,6 @@ use ic_lightclient_ethereum::{
     },
     payload::{LightClientStatePayload, LightClientUpdatePayload},
 };
-use ic_lightclient_types::{ChainState, ChainUpdates};
 use std::time::SystemTime;
 
 const MAX_REQUEST_LIGHT_CLIENT_UPDATES: u8 = 128;
@@ -57,7 +56,10 @@ impl EthereumChain {
         println!("Ethereum light client initialized with bootstrap data.");
     }
 
-    pub async fn get_updates(&mut self, canister_state: LightClientStatePayload<MainnetConsensusSpec>) -> Option<Vec<LightClientUpdatePayload<MainnetConsensusSpec>>> {
+    pub async fn get_updates(
+        &mut self,
+        canister_state: LightClientStatePayload<MainnetConsensusSpec>,
+    ) -> Option<Vec<LightClientUpdatePayload<MainnetConsensusSpec>>> {
         self.check_and_sync().await;
 
         // check for next sync committee

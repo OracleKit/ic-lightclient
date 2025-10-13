@@ -8,7 +8,6 @@ mod util;
 
 use anyhow::Result;
 use chain::ChainManager;
-use ic_lightclient_types::CanisterUpdates;
 use ic_lightclient_wire::{StatePayloadParser, UpdatePayloadMarshaller};
 use icp::ICP;
 use std::time::Duration;
@@ -44,7 +43,7 @@ async fn main() -> Result<()> {
             if let Some(updates) = updates {
                 let mut marshaller = UpdatePayloadMarshaller::new();
                 marshaller.updates(1, updates).unwrap();
-                
+
                 ICP::update_canister_state(marshaller.build().unwrap()).await;
             }
         });
