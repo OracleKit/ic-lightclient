@@ -10,12 +10,12 @@ type HttpResponse = record {
   status_code : nat16;
 };
 service : {
-  get_config : (text) -> (opt text) query;
+  get_config : (nat16) -> (opt text) query;
   get_latest_block_hash : () -> (text) query;
   get_state : () -> (blob) query;
   http_request : (HttpRequest) -> (HttpResponse) query;
-  init : () -> ();
-  list_configs : () -> (vec text) query;
-  set_config : (text, text) -> ();
+  init : (vec nat16) -> ();
+  list_configs : () -> (vec nat16) query;
+  set_config : (nat16, text) -> ();
   update_state : (blob) -> ();
 }

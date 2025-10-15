@@ -1,7 +1,6 @@
-use crate::{blueprint::EthereumChainBlueprint, chain::Chain, config::ConfigManager, ethereum::GenericChain};
+use crate::{blueprint::build_chain_from_uid, chain::Chain};
 use std::{
-    cell::{OnceCell, RefCell},
-    rc::Rc,
+    cell::{OnceCell, RefCell}, collections::HashMap, rc::Rc
 };
 
 thread_local! {
@@ -9,25 +8,28 @@ thread_local! {
 }
 
 pub struct ChainState {
-    pub ethereum: Box<dyn Chain>,
+    pub chains: HashMap<u16, Box<dyn Chain>>,
 }
 
 pub struct GlobalState;
 
 impl GlobalState {
-    pub async fn init() {
-        let config = ConfigManager::get("ethereum").unwrap();
-        let mut ethereum = GenericChain::<EthereumChainBlueprint>::new(config).await;
-        ethereum.init().await;
+    pub async fn init(uids: Vec<u16>) {
+        let mut chains = HashMap::new();
+        for uid in uids {
+            let mut chain = build_chain_from_uid(uid).await;
+            chain.init().await;
+            chains.insert(uid, chain);
+        }
 
-        CHAINS.with(|chains| {
-            chains
-                .set(Rc::new(RefCell::new(ChainState { ethereum: Box::new(ethereum) })))
+        CHAINS.with(|state| {
+            state
+                .set(Rc::new(RefCell::new(ChainState { chains })))
                 .unwrap_or_else(|_| panic!("GlobalState already initialized"));
         });
     }
 
-    pub fn chains() -> Rc<RefCell<ChainState>> {
+    pub fn state() -> Rc<RefCell<ChainState>> {
         CHAINS.with(|chains| chains.get().unwrap().clone())
     }
 }

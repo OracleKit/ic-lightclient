@@ -25,7 +25,7 @@ export async function setupCanister(): Promise<string> {
     ret = await spawnAndWait('bash', ['-c', './target/debug/ic-lightclient-tool']);
     if ( ret !== 0 ) throw "Unable to init config.";
 
-    ret = await spawnAndWait('dfx', ['canister', 'call', "canister", "init"]);
+    ret = await spawnAndWait('dfx', ['canister', 'call', "canister", "init", "(vec {1 : nat16})"]);
     if ( ret !== 0 ) throw "Unable to init canister";
 
     return canisterId;
