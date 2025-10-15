@@ -1,6 +1,8 @@
 use crate::{blueprint::build_chain_from_uid, chain::Chain};
 use std::{
-    cell::{OnceCell, RefCell}, collections::HashMap, rc::Rc
+    cell::{OnceCell, RefCell},
+    collections::HashMap,
+    rc::Rc,
 };
 
 thread_local! {

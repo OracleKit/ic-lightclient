@@ -1,4 +1,8 @@
-use crate::{chain::Chain, config::ConfigManager, ethereum::{config::EthereumConfigManager, GenericChain, GenericChainBlueprint}};
+use crate::{
+    chain::Chain,
+    config::ConfigManager,
+    ethereum::{config::EthereumConfigManager, GenericChain, GenericChainBlueprint},
+};
 use ic_lightclient_ethereum::{helios::spec::MainnetConsensusSpec, EthereumLightClientConsensus};
 
 #[derive(Debug)]
@@ -16,7 +20,7 @@ pub async fn build_chain_from_uid(uid: u16) -> Box<dyn Chain> {
             let config = ConfigManager::get(EthereumChainBlueprint::CHAIN_UID).unwrap();
             GenericChain::<EthereumChainBlueprint>::new(config).await
         }
-        _ => panic!("Invalid")
+        _ => panic!("Invalid"),
     };
 
     Box::new(chain)
