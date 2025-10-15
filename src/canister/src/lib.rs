@@ -21,12 +21,13 @@ fn get_latest_block_hash() -> String {
 #[ic_cdk::query]
 fn get_state() -> Vec<u8> {
     let state = GlobalState::state();
+    let state = state.borrow();
     let mut marshaller = StatePayloadMarshaller::new();
 
-    let state = state.borrow();
     for chain in state.chains.values() {
         chain.get_state(&mut marshaller);
     }
+
     marshaller.build().unwrap()
 }
 
