@@ -56,7 +56,7 @@ impl IcpAgent {
             .expect("Failed to update canister state");
     }
 
-    pub async fn set_config(name: String, value: String) {
+    pub async fn set_config(name: u16, value: String) {
         let canister = IcpAgent::canister();
         let _: () = canister
             .update("set_config")
