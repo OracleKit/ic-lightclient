@@ -18,16 +18,19 @@ pub struct GlobalState;
 impl GlobalState {
     pub async fn init(uids: Vec<u16>) {
         let mut chains = HashMap::new();
+
         for uid in uids {
             let mut chain = build_chain_from_uid(uid).await;
             chain.init().await;
+
             chains.insert(uid, chain);
         }
 
+        let chains = ChainState { chains };
+        let chains = Rc::new(RefCell::new(chains));
+
         CHAINS.with(|state| {
-            state
-                .set(Rc::new(RefCell::new(ChainState { chains })))
-                .unwrap_or_else(|_| panic!("GlobalState already initialized"));
+            state.set(chains).unwrap_or_else(|_| panic!("GlobalState already initialized"));
         });
     }
 

@@ -1,11 +1,9 @@
 use crate::{
-    chain::Chain,
-    config::ConfigManager,
-    ethereum::{config::EthereumConfigManager, GenericChain, GenericChainBlueprint},
+    chain::{Chain, GenericChainBlueprint, GenericChainFactory},
+    ethereum::EthereumConfigManager,
 };
 use ic_lightclient_ethereum::{helios::spec::MainnetConsensusSpec, EthereumLightClientConsensus};
 
-#[derive(Debug)]
 pub struct EthereumChainBlueprint;
 
 impl GenericChainBlueprint for EthereumChainBlueprint {
@@ -15,13 +13,8 @@ impl GenericChainBlueprint for EthereumChainBlueprint {
 }
 
 pub async fn build_chain_from_uid(uid: u16) -> Box<dyn Chain> {
-    let chain = match uid {
-        EthereumChainBlueprint::CHAIN_UID => {
-            let config = ConfigManager::get(EthereumChainBlueprint::CHAIN_UID).unwrap();
-            GenericChain::<EthereumChainBlueprint>::new(config).await
-        }
+    match uid {
+        EthereumChainBlueprint::CHAIN_UID => GenericChainFactory::build::<EthereumChainBlueprint>().await,
         _ => panic!("Invalid"),
-    };
-
-    Box::new(chain)
+    }
 }
