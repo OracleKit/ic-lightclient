@@ -1,4 +1,3 @@
-use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
 
 pub trait ConfigManager {
@@ -20,15 +19,4 @@ impl<T: ConfigManager> ConfigManagerDyn for T {
     fn get_config(&self) -> &Self::Config {
         self.get_config()
     }
-}
-
-pub trait ConsensusManager {
-    type Config: Debug;
-    type StatePayload: Serialize + Debug;
-    type UpdatePayload: DeserializeOwned + Debug;
-
-    fn new(config: Box<dyn ConfigManagerDyn<Config = Self::Config>>) -> Self;
-    fn get_state(&self) -> Self::StatePayload;
-    fn update_state(&mut self, updates: Vec<Self::UpdatePayload>);
-    fn get_latest_block_hash(&self) -> String;
 }
