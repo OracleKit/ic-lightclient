@@ -1,7 +1,9 @@
 use async_trait::async_trait;
-use ic_lightclient_types::traits::{self, ConfigManager, ConsensusManager};
+use ic_lightclient_types::traits::{self, ConfigManager};
 use ic_lightclient_wire::{StatePayloadMarshaller, UpdatePayloadParser};
 use std::marker::PhantomData;
+
+use crate::chain::state::StateManager;
 
 #[async_trait(?Send)]
 pub trait Chain {
@@ -14,20 +16,20 @@ pub trait Chain {
 pub trait GenericChainBlueprint {
     const CHAIN_UID: u16;
     type ConfigManager: traits::ConfigManager + 'static;
-    type ConsensusManager: traits::ConsensusManager<Config = <Self::ConfigManager as ConfigManager>::Config> + 'static;
+    type StateManager: StateManager<Config = <Self::ConfigManager as ConfigManager>::Config> + 'static;
 }
 
 pub struct GenericChain<Blueprint: GenericChainBlueprint> {
-    consensus: Blueprint::ConsensusManager,
+    state: Blueprint::StateManager,
     blueprint: PhantomData<Blueprint>,
 }
 
 impl<Blueprint: GenericChainBlueprint> GenericChain<Blueprint> {
     pub async fn new(config: String) -> Self {
         let config_manager = Blueprint::ConfigManager::new(config).await;
-        let consensus = Blueprint::ConsensusManager::new(Box::new(config_manager));
+        let state = Blueprint::StateManager::new(Box::new(config_manager));
 
-        Self { consensus, blueprint: PhantomData }
+        Self { state, blueprint: PhantomData }
     }
 }
 
@@ -36,7 +38,7 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
     async fn init(&mut self) {}
 
     fn get_state(&self, marshaller: &mut StatePayloadMarshaller) {
-        let state = self.consensus.get_state();
+        let state = self.state.get_state();
         marshaller.state(Blueprint::CHAIN_UID, state).unwrap();
     }
 
@@ -50,10 +52,10 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
         // TODO: Add check for conflicts
 
         let updates = updates.updates(Blueprint::CHAIN_UID).unwrap();
-        self.consensus.update_state(updates);
+        self.state.update_state(updates);
     }
 
     fn get_latest_block_hash(&self) -> String {
-        self.consensus.get_latest_block_hash()
+        self.state.get_latest_block_hash()
     }
 }

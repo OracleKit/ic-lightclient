@@ -10,7 +10,7 @@ use crate::{
         LightClientUpdatePayload,
     },
 };
-use ic_lightclient_types::traits::{ConfigManagerDyn, ConsensusManager};
+use ic_lightclient_types::traits::ConfigManagerDyn;
 use serde::{de::DeserializeOwned, Serialize};
 
 pub struct EthereumLightClientConsensus<S: ConsensusSpec> {
@@ -19,16 +19,12 @@ pub struct EthereumLightClientConsensus<S: ConsensusSpec> {
     config: Box<dyn ConfigManagerDyn<Config = EthereumConfigPopulated>>,
 }
 
-impl<S: ConsensusSpec + Serialize + DeserializeOwned> ConsensusManager for EthereumLightClientConsensus<S> {
-    type Config = EthereumConfigPopulated;
-    type StatePayload = LightClientStatePayload<S>;
-    type UpdatePayload = LightClientUpdatePayload<S>;
-
-    fn new(config: Box<dyn ConfigManagerDyn<Config = EthereumConfigPopulated>>) -> Self {
+impl<S: ConsensusSpec + Serialize + DeserializeOwned> EthereumLightClientConsensus<S> {
+    pub fn new(config: Box<dyn ConfigManagerDyn<Config = EthereumConfigPopulated>>) -> Self {
         Self { is_bootstrapped: false, store: LightClientStore::default(), config }
     }
 
-    fn get_state(&self) -> LightClientStatePayload<S> {
+    pub fn get_state(&self) -> LightClientStatePayload<S> {
         if !self.is_bootstrapped {
             let checkpoint_root = self.config.get_config().checkpoint.as_ref().unwrap().checkpoint_block_root;
             let state = LightClientStateBootstrap { block_hash: checkpoint_root };
@@ -39,7 +35,7 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned> ConsensusManager for Ether
         }
     }
 
-    fn update_state(&mut self, updates: Vec<LightClientUpdatePayload<S>>) {
+    pub fn update_state(&mut self, updates: Vec<LightClientUpdatePayload<S>>) {
         for update in updates {
             match update {
                 LightClientUpdatePayload::Bootstrap(bootstrap) => {
@@ -62,7 +58,7 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned> ConsensusManager for Ether
         }
     }
 
-    fn get_latest_block_hash(&self) -> String {
+    pub fn get_latest_block_hash(&self) -> String {
         if !self.is_bootstrapped {
             self.config
                 .get_config()
