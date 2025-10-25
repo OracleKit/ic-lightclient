@@ -19,6 +19,22 @@ fn get_latest_block_hash() -> String {
 }
 
 #[ic_cdk::query]
+fn get_base_gas_fee() -> u128 {
+    let state = GlobalState::state();
+    let state = state.borrow();
+    let ethereum = state.chains.get(&1).unwrap();
+    ethereum.get_base_gas_fee()
+}
+
+#[ic_cdk::query]
+fn get_max_priority_fee() -> u128 {
+    let state = GlobalState::state();
+    let state = state.borrow();
+    let ethereum = state.chains.get(&1).unwrap();
+    ethereum.get_max_priority_fee()
+}
+
+#[ic_cdk::query]
 fn get_state() -> Vec<u8> {
     let state = GlobalState::state();
     let state = state.borrow();

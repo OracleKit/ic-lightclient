@@ -13,7 +13,7 @@ use ic_lightclient_ethereum::{
         spec::MainnetConsensusSpec,
         types::{FinalityUpdate, Forks, GenericUpdate, LightClientStore, OptimisticUpdate, Update},
     },
-    payload::{LightClientStatePayload, LightClientUpdatePayload},
+    payload::{Block, LightClientStatePayload, LightClientUpdatePayload},
 };
 use std::time::SystemTime;
 
@@ -64,13 +64,23 @@ impl EthereumChain {
 
         // check for next sync committee
 
-        let updates = self.state_differ.get_diff_updates(&canister_state, &self.light_client_store);
+        let mut updates = self.state_differ.get_diff_updates(&canister_state, &self.light_client_store);
 
         if updates.len() > 0 {
+            let block = self.get_latest_block_update().await;
+            updates.push(block);
+
             Some(updates)
         } else {
             None
         }
+    }
+
+    async fn get_latest_block_update(&self) -> LightClientUpdatePayload<MainnetConsensusSpec> {
+        let base_gas_fee = ExecutionApi::base_gas_fee().await.try_into().unwrap();
+        let max_priority_fee = ExecutionApi::max_priority_fee().await.try_into().unwrap();
+
+        LightClientUpdatePayload::Block(Block { base_gas_fee, max_priority_fee })
     }
 
     async fn check_and_sync(&mut self) {

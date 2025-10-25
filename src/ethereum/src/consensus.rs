@@ -54,6 +54,8 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned> EthereumLightClientConsens
                 LightClientUpdatePayload::Update(update) => {
                     apply_update_payload(&mut self.store, update);
                 }
+
+                _ => {}
             }
         }
     }

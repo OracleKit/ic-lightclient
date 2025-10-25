@@ -11,6 +11,8 @@ pub trait Chain {
     fn get_state(&self, marshaller: &mut StatePayloadMarshaller);
     fn update_state(&mut self, updates: &UpdatePayloadParser);
     fn get_latest_block_hash(&self) -> String;
+    fn get_base_gas_fee(&self) -> u128;
+    fn get_max_priority_fee(&self) -> u128;
 }
 
 pub trait GenericChainBlueprint {
@@ -57,5 +59,13 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
 
     fn get_latest_block_hash(&self) -> String {
         self.state.get_latest_block_hash()
+    }
+
+    fn get_base_gas_fee(&self) -> u128 {
+        self.state.get_base_gas_fee()
+    }
+
+    fn get_max_priority_fee(&self) -> u128 {
+        self.state.get_max_priority_fee()
     }
 }
