@@ -10,8 +10,10 @@ type HttpResponse = record {
   status_code : nat16;
 };
 service : {
+  get_base_gas_fee : () -> (nat) query;
   get_config : (nat16) -> (opt text) query;
   get_latest_block_hash : () -> (text) query;
+  get_max_priority_fee : () -> (nat) query;
   get_state : () -> (blob) query;
   http_request : (HttpRequest) -> (HttpResponse) query;
   init : (vec nat16) -> ();

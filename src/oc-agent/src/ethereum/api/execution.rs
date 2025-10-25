@@ -62,4 +62,12 @@ impl ExecutionApi {
     pub async fn block_header_by_number(block_number: U256) -> Header {
         Self::request("eth_getBlockByNumber", (block_number, false)).await
     }
+
+    pub async fn base_gas_fee() -> U256 {
+        Self::request("eth_gasPrice", ()).await
+    }
+
+    pub async fn max_priority_fee() -> U256 {
+        Self::request("eth_maxPriorityFeePerGas", ()).await
+    }
 }

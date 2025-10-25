@@ -20,15 +20,21 @@ describe('test e2e', () => {
         let canisterId = await setupCanister();
         let actor = createActor(canisterId, { agent });
         let block_hash = await actor.get_latest_block_hash();
+        let base_gas_fee = await actor.get_base_gas_fee();
+        let max_priority_fee = await actor.get_max_priority_fee();
 
         await setupOcAgent();
         await new Promise(resolve => setTimeout(resolve, 30*1000));
 
         expect(await checkOcAgentHealthy()).toBe(true);
         let new_block_hash = await actor.get_latest_block_hash();
+        let new_base_gas_fee = await actor.get_base_gas_fee();
+        let new_max_priority_fee = await actor.get_max_priority_fee();
 
         expect(typeof block_hash).toBe('string');
         expect(block_hash !== new_block_hash).toBe(true);
+        expect(base_gas_fee !== new_base_gas_fee).toBe(true);
+        expect(max_priority_fee !== new_max_priority_fee).toBe(true);
         
     }, 120*1000);
     

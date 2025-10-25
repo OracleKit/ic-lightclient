@@ -1,15 +1,21 @@
+use crate::chain::StateManager;
 use ic_lightclient_ethereum::{
     config::EthereumConfigPopulated,
     helios::spec::ConsensusSpec,
-    payload::{LightClientStatePayload, LightClientUpdatePayload},
+    payload::{Block, LightClientStatePayload, LightClientUpdatePayload},
     EthereumLightClientConsensus,
 };
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::chain::StateManager;
-
 pub struct EthereumStateManager<S: ConsensusSpec> {
     consensus: EthereumLightClientConsensus<S>,
+    block: Block,
+}
+
+impl<S: ConsensusSpec> EthereumStateManager<S> {
+    fn update_block(&mut self, block: Block) {
+        self.block = block;
+    }
 }
 
 impl<S: ConsensusSpec + Serialize + DeserializeOwned> StateManager for EthereumStateManager<S> {
@@ -19,7 +25,7 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned> StateManager for EthereumS
 
     fn new(config: Box<dyn ic_lightclient_types::traits::ConfigManagerDyn<Config = Self::Config>>) -> Self {
         let consensus = EthereumLightClientConsensus::new(config);
-        Self { consensus }
+        Self { consensus, block: Block::default() }
     }
 
     fn get_state(&self) -> Self::StatePayload {
@@ -27,10 +33,24 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned> StateManager for EthereumS
     }
 
     fn update_state(&mut self, updates: Vec<Self::UpdatePayload>) {
+        for update in updates.iter() {
+            if let LightClientUpdatePayload::Block(block) = update {
+                self.update_block(block.clone());
+            }
+        }
+
         self.consensus.update_state(updates);
     }
 
     fn get_latest_block_hash(&self) -> String {
         self.consensus.get_latest_block_hash()
+    }
+
+    fn get_base_gas_fee(&self) -> u128 {
+        self.block.base_gas_fee
+    }
+
+    fn get_max_priority_fee(&self) -> u128 {
+        self.block.max_priority_fee
     }
 }
