@@ -34,7 +34,6 @@ impl ConfigManager for EthereumConfigManager {
         .unwrap()
         .0;
 
-        ic_cdk::println!("Raw data: {:?}", res.body.as_slice());
         let checkpoint = parse_checkpointz_output_to_config(res.body);
         let mut populated_config: EthereumConfigPopulated = config.into();
         populated_config.checkpoint = Some(checkpoint);
