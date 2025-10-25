@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Block {
     pub base_gas_fee: u128,
-    pub max_priority_fee: u128
+    pub max_priority_fee: u128,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -24,7 +24,7 @@ pub struct UpdatePayload<S: ConsensusSpec> {
 pub enum LightClientUpdatePayload<S: ConsensusSpec> {
     Bootstrap(Bootstrap<S>),
     Update(UpdatePayload<S>),
-    Block(Block)
+    Block(Block),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

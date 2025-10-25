@@ -1,3 +1,4 @@
+use crate::chain::StateManager;
 use ic_lightclient_ethereum::{
     config::EthereumConfigPopulated,
     helios::spec::ConsensusSpec,
@@ -5,11 +6,10 @@ use ic_lightclient_ethereum::{
     EthereumLightClientConsensus,
 };
 use serde::{de::DeserializeOwned, Serialize};
-use crate::chain::StateManager;
 
 pub struct EthereumStateManager<S: ConsensusSpec> {
     consensus: EthereumLightClientConsensus<S>,
-    block: Block
+    block: Block,
 }
 
 impl<S: ConsensusSpec> EthereumStateManager<S> {
@@ -45,11 +45,11 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned> StateManager for EthereumS
     fn get_latest_block_hash(&self) -> String {
         self.consensus.get_latest_block_hash()
     }
-    
+
     fn get_base_gas_fee(&self) -> u128 {
         self.block.base_gas_fee
     }
-    
+
     fn get_max_priority_fee(&self) -> u128 {
         self.block.max_priority_fee
     }
