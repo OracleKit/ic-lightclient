@@ -2064,6 +2064,7 @@ dependencies = [
  "alloy-consensus",
  "alloy-primitives",
  "alloy-rpc-types-eth",
+ "anyhow",
  "bincode",
  "ethereum_ssz",
  "ethereum_ssz_derive",
@@ -2142,6 +2143,7 @@ name = "ic-lightclient-wire"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "ic-lightclient-ethereum",
  "serde",
  "serde_json",
 ]

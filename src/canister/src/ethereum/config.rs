@@ -35,8 +35,7 @@ impl ConfigManager for EthereumConfigManager {
         .0;
 
         let checkpoint = parse_checkpointz_output_to_config(res.body);
-        let mut populated_config: EthereumConfigPopulated = config.into();
-        populated_config.checkpoint = Some(checkpoint);
+        let populated_config = config.populate(checkpoint);
 
         Self { config: populated_config }
     }
