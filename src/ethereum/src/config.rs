@@ -20,7 +20,7 @@ pub struct EthereumConfigPopulated {
     pub genesis_validator_root: B256,
     pub genesis_time: u64,
     pub forks: Forks,
-    pub checkpoint: EthereumCheckpoint
+    pub checkpoint: EthereumCheckpoint,
 }
 
 impl EthereumConfig {
@@ -32,7 +32,7 @@ impl EthereumConfig {
             genesis_validator_root: self.genesis_validator_root,
             genesis_time: self.genesis_time,
             forks: self.forks,
-            checkpoint
+            checkpoint,
         }
     }
 }

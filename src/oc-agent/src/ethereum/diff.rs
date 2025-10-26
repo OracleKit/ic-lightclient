@@ -2,7 +2,8 @@ use ic_lightclient_ethereum::{
     helios::{
         spec::ConsensusSpec,
         types::{Bootstrap, LightClientStore},
-    }, EthereumLightClientConsensus,
+    },
+    EthereumLightClientConsensus,
 };
 use ic_lightclient_wire::{LightClientStatePayload, LightClientUpdatePayload};
 
@@ -45,12 +46,13 @@ impl<S: ConsensusSpec> EthereumStateDiff<S> {
         }
     }
 
-    fn get_diff_updates_for_bootstrap(&self, store: &EthereumLightClientConsensus<S>) -> Vec<LightClientUpdatePayload<S>> {
-        let mut updates = vec![
-            LightClientUpdatePayload::Bootstrap(
-                self.bootstrap.as_ref().expect("Bootstrap update not found").clone(),
-            )
-        ];
+    fn get_diff_updates_for_bootstrap(
+        &self,
+        store: &EthereumLightClientConsensus<S>,
+    ) -> Vec<LightClientUpdatePayload<S>> {
+        let mut updates = vec![LightClientUpdatePayload::Bootstrap(
+            self.bootstrap.as_ref().expect("Bootstrap update not found").clone(),
+        )];
 
         if let Some(diff) = store.diff(&LightClientStore::default()) {
             updates.push(LightClientUpdatePayload::Update(diff));

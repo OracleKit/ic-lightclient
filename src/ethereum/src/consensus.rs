@@ -1,9 +1,13 @@
 use crate::{
-    config::EthereumConfigPopulated, helios::{
-        consensus::{apply_bootstrap, apply_generic_update, expected_current_slot, verify_bootstrap, verify_generic_update},
+    config::EthereumConfigPopulated,
+    helios::{
+        consensus::{
+            apply_bootstrap, apply_generic_update, expected_current_slot, verify_bootstrap, verify_generic_update,
+        },
         spec::ConsensusSpec,
         types::{Bootstrap, GenericUpdate, LightClientStore},
-    }, payload::{diff_store, patch_store, LightClientState, LightClientStoreDiff}
+    },
+    payload::{diff_store, patch_store, LightClientState, LightClientStoreDiff},
 };
 use alloy_primitives::B256;
 use anyhow::{anyhow, Result};
@@ -39,12 +43,11 @@ impl<S: ConsensusSpec> EthereumLightClientConsensus<S> {
         let checkpoint = config.checkpoint.checkpoint_block_root;
         let forks = &config.forks;
 
-        verify_bootstrap(bootstrap, checkpoint, forks)
-            .map_err(|e| anyhow!(e))?;
+        verify_bootstrap(bootstrap, checkpoint, forks).map_err(|e| anyhow!(e))?;
 
         apply_bootstrap(&mut self.store, bootstrap);
         self.is_bootstrapped = true;
-        
+
         Ok(())
     }
 
@@ -55,8 +58,7 @@ impl<S: ConsensusSpec> EthereumLightClientConsensus<S> {
         let forks = &config.forks;
         let current_slot = expected_current_slot(current_time, genesis_time);
 
-        verify_generic_update(update, current_slot, &self.store, genesis_root, forks)
-            .map_err(|e| anyhow!(e))?;
+        verify_generic_update(update, current_slot, &self.store, genesis_root, forks).map_err(|e| anyhow!(e))?;
 
         apply_generic_update(&mut self.store, update);
 
@@ -73,10 +75,7 @@ impl<S: ConsensusSpec> EthereumLightClientConsensus<S> {
 
     pub fn get_latest_block_hash(&self) -> String {
         if !self.is_bootstrapped {
-            self.config
-                .checkpoint
-                .checkpoint_block_root
-                .to_string()
+            self.config.checkpoint.checkpoint_block_root.to_string()
         } else {
             format!(
                 "Slot: {}, hash: {}",

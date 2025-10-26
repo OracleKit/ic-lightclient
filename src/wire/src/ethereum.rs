@@ -1,6 +1,8 @@
-use ic_lightclient_ethereum::{helios::{spec::ConsensusSpec, types::Bootstrap}, payload::{LightClientState, LightClientStoreDiff}};
+use ic_lightclient_ethereum::{
+    helios::{spec::ConsensusSpec, types::Bootstrap},
+    payload::{LightClientState, LightClientStoreDiff},
+};
 use serde::{Deserialize, Serialize};
-
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Block {

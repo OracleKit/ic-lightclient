@@ -1,8 +1,6 @@
 use crate::chain::StateManager;
 use ic_lightclient_ethereum::{
-    config::EthereumConfigPopulated,
-    helios::spec::ConsensusSpec,
-    EthereumLightClientConsensus,
+    config::EthereumConfigPopulated, helios::spec::ConsensusSpec, EthereumLightClientConsensus,
 };
 use ic_lightclient_wire::{Block, LightClientStatePayload, LightClientUpdatePayload};
 use serde::{de::DeserializeOwned, Serialize};

@@ -42,7 +42,10 @@ pub fn patch_store<S: ConsensusSpec>(store: &mut LightClientStore<S>, diff: Ligh
     }
 }
 
-pub fn diff_store<S: ConsensusSpec>(reference: &LightClientStore<S>, store: &LightClientStore<S>) -> Option<LightClientStoreDiff<S>> {
+pub fn diff_store<S: ConsensusSpec>(
+    reference: &LightClientStore<S>,
+    store: &LightClientStore<S>,
+) -> Option<LightClientStoreDiff<S>> {
     let mut update = LightClientStoreDiff::default();
     let mut update_required = false;
 

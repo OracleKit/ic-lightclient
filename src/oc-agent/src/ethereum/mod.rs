@@ -6,11 +6,13 @@ use alloy_primitives::B256;
 use api::{ConsensusApi, ExecutionApi};
 use diff::EthereumStateDiff;
 use ic_lightclient_ethereum::{
-    checkpoint::EthereumCheckpoint, helios::{
+    checkpoint::EthereumCheckpoint,
+    helios::{
         consensus::{calc_sync_period, expected_current_slot},
         spec::MainnetConsensusSpec,
         types::{Forks, GenericUpdate, Update},
-    }, EthereumLightClientConsensus
+    },
+    EthereumLightClientConsensus,
 };
 use ic_lightclient_wire::{Block, LightClientStatePayload, LightClientUpdatePayload};
 use std::time::SystemTime;
