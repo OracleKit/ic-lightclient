@@ -2,9 +2,9 @@ use crate::chain::StateManager;
 use ic_lightclient_ethereum::{
     config::EthereumConfigPopulated,
     helios::spec::ConsensusSpec,
-    payload::{Block, LightClientStatePayload, LightClientUpdatePayload},
     EthereumLightClientConsensus,
 };
+use ic_lightclient_wire::{Block, LightClientStatePayload, LightClientUpdatePayload};
 use serde::{de::DeserializeOwned, Serialize};
 
 pub struct EthereumStateManager<S: ConsensusSpec> {
@@ -24,22 +24,31 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned> StateManager for EthereumS
     type UpdatePayload = LightClientUpdatePayload<S>;
 
     fn new(config: Box<dyn ic_lightclient_types::traits::ConfigManagerDyn<Config = Self::Config>>) -> Self {
-        let consensus = EthereumLightClientConsensus::new(config);
+        let config = config.get_config();
+        let consensus = EthereumLightClientConsensus::new(config.clone());
         Self { consensus, block: Block::default() }
     }
 
     fn get_state(&self) -> Self::StatePayload {
-        self.consensus.get_state()
+        self.consensus.get_state().unwrap()
     }
 
     fn update_state(&mut self, updates: Vec<Self::UpdatePayload>) {
-        for update in updates.iter() {
-            if let LightClientUpdatePayload::Block(block) = update {
-                self.update_block(block.clone());
+        for update in updates {
+            match update {
+                LightClientUpdatePayload::Block(block) => {
+                    self.update_block(block.clone());
+                }
+
+                LightClientUpdatePayload::Bootstrap(bootstrap) => {
+                    self.consensus.bootstrap(&bootstrap).unwrap();
+                }
+
+                LightClientUpdatePayload::Update(update) => {
+                    self.consensus.patch(update);
+                }
             }
         }
-
-        self.consensus.update_state(updates);
     }
 
     fn get_latest_block_hash(&self) -> String {

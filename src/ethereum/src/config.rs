@@ -12,7 +12,7 @@ pub struct EthereumConfig {
     pub forks: Forks,
 }
 
-#[derive(Deserialize, Debug, Default, Serialize, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct EthereumConfigPopulated {
     pub execution_api: String,
     pub consensus_api: String,
@@ -20,21 +20,19 @@ pub struct EthereumConfigPopulated {
     pub genesis_validator_root: B256,
     pub genesis_time: u64,
     pub forks: Forks,
-
-    #[serde(skip)]
-    pub checkpoint: Option<EthereumCheckpoint>,
+    pub checkpoint: EthereumCheckpoint
 }
 
-impl From<EthereumConfig> for EthereumConfigPopulated {
-    fn from(value: EthereumConfig) -> Self {
-        Self {
-            execution_api: value.execution_api,
-            consensus_api: value.consensus_api,
-            checkpoint_sync_host: value.checkpoint_sync_host,
-            genesis_validator_root: value.genesis_validator_root,
-            genesis_time: value.genesis_time,
-            forks: value.forks,
-            checkpoint: None,
+impl EthereumConfig {
+    pub fn populate(self, checkpoint: EthereumCheckpoint) -> EthereumConfigPopulated {
+        EthereumConfigPopulated {
+            execution_api: self.execution_api,
+            consensus_api: self.consensus_api,
+            checkpoint_sync_host: self.checkpoint_sync_host,
+            genesis_validator_root: self.genesis_validator_root,
+            genesis_time: self.genesis_time,
+            forks: self.forks,
+            checkpoint
         }
     }
 }
