@@ -44,14 +44,15 @@ impl EthereumChain {
         let config = Config::ethereum();
         let config = config.populate(EthereumCheckpoint { checkpoint_block_root: checkpoint });
 
-        ExecutionApi::init(config.execution_api);
-        ConsensusApi::init(config.consensus_api);
+        ExecutionApi::init(config.execution_api.clone());
+        ConsensusApi::init(config.consensus_api.clone());
 
         self.genesis_time = config.genesis_time;
         self.genesis_validator_root = config.genesis_validator_root;
-        self.forks = config.forks;
+        self.forks = config.forks.clone();
 
         let bootstrap = ConsensusApi::bootstrap(checkpoint).await;
+        self.light_client_store = EthereumLightClientConsensus::new(config);
         self.light_client_store.bootstrap(&bootstrap).unwrap();
         self.state_differ.add_bootstrap(bootstrap);
         println!("Ethereum light client initialized with bootstrap data.");
