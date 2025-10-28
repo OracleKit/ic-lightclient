@@ -16,6 +16,7 @@ struct Inner {
 
 #[derive(Debug, Deserialize)]
 struct ResponseWrapper<T> {
+    #[allow(dead_code)]
     version: String,
     data: T,
 }

@@ -1,12 +1,11 @@
 mod api;
 mod diff;
 
-use crate::config::Config;
 use alloy_primitives::B256;
 use api::{ConsensusApi, ExecutionApi};
 use diff::EthereumStateDiff;
 use ic_lightclient_ethereum::{
-    checkpoint::EthereumCheckpoint,
+    config::EthereumConfigPopulated,
     helios::{
         consensus::{calc_sync_period, expected_current_slot},
         spec::MainnetConsensusSpec,
@@ -34,22 +33,14 @@ impl EthereumChain {
         Self::default()
     }
 
-    pub async fn init(&mut self, canister_state: LightClientStatePayload<MainnetConsensusSpec>) {
-        // TODO: fix
-        let LightClientStatePayload::Bootstrap(checkpoint) = canister_state else {
-            panic!("Canister not in bootstrap state.");
-        };
-
-        // TODO supposed to change. config should be fetched from canister.
-        let config = Config::ethereum();
-        let config = config.populate(EthereumCheckpoint { checkpoint_block_root: checkpoint });
-
+    pub async fn init(&mut self, config: EthereumConfigPopulated) {
         ExecutionApi::init(config.execution_api.clone());
         ConsensusApi::init(config.consensus_api.clone());
 
         self.genesis_time = config.genesis_time;
         self.genesis_validator_root = config.genesis_validator_root;
         self.forks = config.forks.clone();
+        let checkpoint = config.checkpoint.checkpoint_block_root;
 
         let bootstrap = ConsensusApi::bootstrap(checkpoint).await;
         self.light_client_store = EthereumLightClientConsensus::new(config);

@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::chain::StateManager;
 use ic_lightclient_ethereum::{
     config::EthereumConfigPopulated, helios::spec::ConsensusSpec, EthereumLightClientConsensus,
@@ -21,7 +23,7 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned> StateManager for EthereumS
     type StatePayload = LightClientStatePayload<S>;
     type UpdatePayload = LightClientUpdatePayload<S>;
 
-    fn new(config: Box<dyn ic_lightclient_types::traits::ConfigManagerDyn<Config = Self::Config>>) -> Self {
+    fn new(config: Rc<dyn ic_lightclient_types::traits::ConfigManagerDyn<Config = Self::Config>>) -> Self {
         let config = config.get_config();
         let consensus = EthereumLightClientConsensus::new(config.clone());
         Self { consensus, block: Block::default() }

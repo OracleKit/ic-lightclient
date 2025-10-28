@@ -47,6 +47,14 @@ fn get_state() -> Vec<u8> {
     marshaller.build().unwrap()
 }
 
+#[ic_cdk::query]
+fn get_chain_config() -> Vec<u8> {
+    let state = GlobalState::state();
+    let state = state.borrow();
+    let ethereum = state.chains.get(&1).unwrap();
+    ethereum.get_config()
+}
+
 #[ic_cdk::update]
 fn update_state(updates: Vec<u8>) {
     let start = ic_cdk::api::performance_counter(0);
