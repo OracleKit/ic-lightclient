@@ -21,10 +21,10 @@ pub trait GenericChainBlueprint {
     type ConfigManager: traits::ConfigManager + 'static;
     type Protocol: WireProtocol;
     type StateManager: StateManager<
-        Config = <Self::ConfigManager as ConfigManager>::Config,
-        UpdatePayload = <Self::Protocol as WireProtocol>::UpdatePayload,
-        StatePayload = <Self::Protocol as WireProtocol>::StatePayload,
-    > + 'static;
+            Config = <Self::ConfigManager as ConfigManager>::Config,
+            UpdatePayload = <Self::Protocol as WireProtocol>::UpdatePayload,
+            StatePayload = <Self::Protocol as WireProtocol>::StatePayload,
+        > + 'static;
 }
 
 pub struct GenericChain<Blueprint: GenericChainBlueprint> {

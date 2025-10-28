@@ -45,7 +45,9 @@ async fn main() -> Result<()> {
 
             if let Some(updates) = updates {
                 let mut marshaller = UpdatePayloadMarshaller::new();
-                marshaller.updates::<EthereumWireProtocol<MainnetConsensusSpec>>(1, updates).unwrap();
+                marshaller
+                    .updates::<EthereumWireProtocol<MainnetConsensusSpec>>(1, updates)
+                    .unwrap();
 
                 ICP::update_canister_state(marshaller.build().unwrap()).await;
             }

@@ -38,9 +38,7 @@ impl UpdatePayloadParser {
         let updates = raw_updates
             .updates
             .iter()
-            .map(|raw_update|
-                serde_json::from_slice(raw_update.as_slice())
-                    .context("Failed to parse update."))
+            .map(|raw_update| serde_json::from_slice(raw_update.as_slice()).context("Failed to parse update."))
             .collect::<Result<Vec<W::UpdatePayload>>>()?;
 
         Ok(updates)

@@ -24,7 +24,7 @@ pub enum LightClientUpdatePayload<S: ConsensusSpec> {
 pub type LightClientStatePayload<S> = LightClientState<S>;
 
 pub struct EthereumWireProtocol<S: ConsensusSpec> {
-    _s: PhantomData<S>
+    _s: PhantomData<S>,
 }
 
 impl<S: ConsensusSpec + Serialize + DeserializeOwned> WireProtocol for EthereumWireProtocol<S> {
