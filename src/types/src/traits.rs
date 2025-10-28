@@ -1,14 +1,15 @@
+use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
 
 pub trait ConfigManager {
-    type Config: Debug + 'static;
+    type Config: Debug + Serialize + DeserializeOwned + 'static;
 
     fn new(config: String) -> impl std::future::Future<Output = Self>;
     fn get_config(&self) -> &Self::Config;
 }
 
 pub trait ConfigManagerDyn {
-    type Config: Debug + 'static;
+    type Config: Debug + Serialize + DeserializeOwned + 'static;
 
     fn get_config(&self) -> &Self::Config;
 }

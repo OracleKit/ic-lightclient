@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use ic_lightclient_types::traits::{self, ConfigManager};
 use ic_lightclient_wire::{StatePayloadMarshaller, UpdatePayloadParser};
-use std::marker::PhantomData;
+use std::{marker::PhantomData, rc::Rc};
 
 use crate::chain::state::StateManager;
 
@@ -13,6 +13,7 @@ pub trait Chain {
     fn get_latest_block_hash(&self) -> String;
     fn get_base_gas_fee(&self) -> u128;
     fn get_max_priority_fee(&self) -> u128;
+    fn get_config(&self) -> Vec<u8>;
 }
 
 pub trait GenericChainBlueprint {
@@ -23,15 +24,17 @@ pub trait GenericChainBlueprint {
 
 pub struct GenericChain<Blueprint: GenericChainBlueprint> {
     state: Blueprint::StateManager,
+    config: Rc<Blueprint::ConfigManager>,
     blueprint: PhantomData<Blueprint>,
 }
 
 impl<Blueprint: GenericChainBlueprint> GenericChain<Blueprint> {
     pub async fn new(config: String) -> Self {
         let config_manager = Blueprint::ConfigManager::new(config).await;
-        let state = Blueprint::StateManager::new(Box::new(config_manager));
+        let config_manager = Rc::new(config_manager);
+        let state = Blueprint::StateManager::new(config_manager.clone());
 
-        Self { state, blueprint: PhantomData }
+        Self { state, config: config_manager, blueprint: PhantomData }
     }
 }
 
@@ -67,5 +70,10 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
 
     fn get_max_priority_fee(&self) -> u128 {
         self.state.get_max_priority_fee()
+    }
+
+    fn get_config(&self) -> Vec<u8> {
+        let config = self.config.get_config();
+        serde_json::to_vec(config).unwrap()
     }
 }

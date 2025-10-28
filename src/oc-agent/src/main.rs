@@ -8,6 +8,7 @@ mod util;
 
 use anyhow::Result;
 use chain::ChainManager;
+use ic_lightclient_ethereum::config::EthereumConfigPopulated;
 use ic_lightclient_wire::{StatePayloadParser, UpdatePayloadMarshaller};
 use icp::ICP;
 use std::time::Duration;
@@ -23,11 +24,12 @@ async fn main() -> Result<()> {
     Config::init(&config_file)?;
 
     ICP::init().await;
-    let state = ICP::get_canister_state().await;
-    let state = StatePayloadParser::new(state).unwrap();
+
+    let config = ICP::get_canister_config().await;
+    let config: EthereumConfigPopulated = serde_json::from_slice(config.as_slice()).unwrap();
 
     let chain_manager = ChainManager::new();
-    chain_manager.ethereum.try_lock().unwrap().init(state.state(1).unwrap()).await;
+    chain_manager.ethereum.try_lock().unwrap().init(config).await;
 
     loop {
         let state = ICP::get_canister_state().await;
@@ -50,6 +52,4 @@ async fn main() -> Result<()> {
 
         sleep(Duration::from_secs(1)).await;
     }
-
-    Ok(())
 }

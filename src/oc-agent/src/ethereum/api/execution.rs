@@ -21,7 +21,9 @@ struct JsonRpcRequestWrapper<T> {
 
 #[derive(Deserialize)]
 struct JsonRpcResponseWrapper<T> {
+    #[allow(dead_code)]
     id: u32,
+    #[allow(dead_code)]
     jsonrpc: String,
     result: T,
 }
@@ -55,10 +57,12 @@ impl ExecutionApi {
         response.result
     }
 
+    #[allow(dead_code)]
     pub async fn latest_block_number() -> U256 {
         Self::request("eth_blockNumber", ()).await
     }
 
+    #[allow(dead_code)]
     pub async fn block_header_by_number(block_number: U256) -> Header {
         Self::request("eth_getBlockByNumber", (block_number, false)).await
     }

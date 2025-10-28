@@ -12,7 +12,7 @@ pub struct EthereumConfig {
     pub forks: Forks,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct EthereumConfigPopulated {
     pub execution_api: String,
     pub consensus_api: String,

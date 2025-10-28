@@ -47,6 +47,18 @@ impl ICP {
         state
     }
 
+    pub async fn get_canister_config() -> Vec<u8> {
+        let canister = ICP::canister();
+        let (state,) = canister
+            .query("get_chain_config")
+            .build()
+            .call()
+            .await
+            .expect("Failed to get canister state");
+
+        state
+    }
+
     pub async fn update_canister_state(updates: Vec<u8>) {
         let canister = ICP::canister();
         let _: () = canister
