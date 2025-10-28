@@ -1,8 +1,12 @@
+use std::marker::PhantomData;
+
 use ic_lightclient_ethereum::{
     helios::{spec::ConsensusSpec, types::Bootstrap},
     payload::{LightClientState, LightClientStoreDiff},
 };
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+
+use crate::protocol::WireProtocol;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Block {
@@ -18,3 +22,12 @@ pub enum LightClientUpdatePayload<S: ConsensusSpec> {
 }
 
 pub type LightClientStatePayload<S> = LightClientState<S>;
+
+pub struct EthereumWireProtocol<S: ConsensusSpec> {
+    _s: PhantomData<S>,
+}
+
+impl<S: ConsensusSpec + Serialize + DeserializeOwned> WireProtocol for EthereumWireProtocol<S> {
+    type StatePayload = LightClientStatePayload<S>;
+    type UpdatePayload = LightClientUpdatePayload<S>;
+}

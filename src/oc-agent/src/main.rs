@@ -8,8 +8,8 @@ mod util;
 
 use anyhow::Result;
 use chain::ChainManager;
-use ic_lightclient_ethereum::config::EthereumConfigPopulated;
-use ic_lightclient_wire::{StatePayloadParser, UpdatePayloadMarshaller};
+use ic_lightclient_ethereum::{config::EthereumConfigPopulated, helios::spec::MainnetConsensusSpec};
+use ic_lightclient_wire::{EthereumWireProtocol, StatePayloadParser, UpdatePayloadMarshaller};
 use icp::ICP;
 use std::time::Duration;
 use tokio::time::sleep;
@@ -40,11 +40,14 @@ async fn main() -> Result<()> {
             let Ok(mut ethereum) = chain_manager.ethereum.try_lock() else {
                 return;
             };
-            let updates = ethereum.get_updates(state.state(1).unwrap()).await;
+            let state = state.state::<EthereumWireProtocol<MainnetConsensusSpec>>(1).unwrap();
+            let updates = ethereum.get_updates(state).await;
 
             if let Some(updates) = updates {
                 let mut marshaller = UpdatePayloadMarshaller::new();
-                marshaller.updates(1, updates).unwrap();
+                marshaller
+                    .updates::<EthereumWireProtocol<MainnetConsensusSpec>>(1, updates)
+                    .unwrap();
 
                 ICP::update_canister_state(marshaller.build().unwrap()).await;
             }

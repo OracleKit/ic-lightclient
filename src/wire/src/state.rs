@@ -1,6 +1,8 @@
 use anyhow::{anyhow, Context, Ok, Result};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+use crate::WireProtocol;
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ChainState {
@@ -25,7 +27,7 @@ impl StatePayloadParser {
         Ok(Self { state })
     }
 
-    pub fn state<T: DeserializeOwned>(&self, uid: u16) -> Result<T> {
+    pub fn state<W: WireProtocol>(&self, uid: u16) -> Result<W::StatePayload> {
         let raw_state = self.state.states.get(&uid).ok_or(anyhow!("No state for chain uid: {}", uid))?;
 
         let state = serde_json::from_slice(raw_state.state.as_slice()).context("Failed to parse state.")?;
@@ -43,7 +45,7 @@ impl StatePayloadMarshaller {
         Self { state: CanisterState { version: 1, states: HashMap::new() } }
     }
 
-    pub fn state<T: Serialize>(&mut self, uid: u16, state: T) -> Result<()> {
+    pub fn state<W: WireProtocol>(&mut self, uid: u16, state: W::StatePayload) -> Result<()> {
         let marshalled_state = serde_json::to_vec(&state).context("Failed to marshal chain state")?;
 
         self.state
