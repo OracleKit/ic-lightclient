@@ -1,6 +1,8 @@
 use anyhow::{anyhow, Context, Ok, Result};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+use crate::WireProtocol;
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct ChainUpdates {
@@ -26,7 +28,7 @@ impl UpdatePayloadParser {
         Ok(Self { updates })
     }
 
-    pub fn updates<T: DeserializeOwned>(&self, uid: u16) -> Result<Vec<T>> {
+    pub fn updates<W: WireProtocol>(&self, uid: u16) -> Result<Vec<W::UpdatePayload>> {
         let raw_updates = self
             .updates
             .updates
@@ -36,8 +38,10 @@ impl UpdatePayloadParser {
         let updates = raw_updates
             .updates
             .iter()
-            .map(|raw_update| serde_json::from_slice(raw_update.as_slice()).context("Failed to parse update."))
-            .collect::<Result<Vec<T>>>()?;
+            .map(|raw_update|
+                serde_json::from_slice(raw_update.as_slice())
+                    .context("Failed to parse update."))
+            .collect::<Result<Vec<W::UpdatePayload>>>()?;
 
         Ok(updates)
     }
@@ -52,7 +56,7 @@ impl UpdatePayloadMarshaller {
         Self { updates: CanisterUpdates { version: 1, updates: HashMap::new() } }
     }
 
-    pub fn updates<T: Serialize>(&mut self, uid: u16, updates: Vec<T>) -> Result<()> {
+    pub fn updates<W: WireProtocol>(&mut self, uid: u16, updates: Vec<W::UpdatePayload>) -> Result<()> {
         let marshalled_updates = updates
             .into_iter()
             .map(|update| serde_json::to_vec(&update).context("Failed to marshal chain update"))

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ic_lightclient_types::traits::{self, ConfigManager};
-use ic_lightclient_wire::{StatePayloadMarshaller, UpdatePayloadParser};
+use ic_lightclient_wire::{StatePayloadMarshaller, UpdatePayloadParser, WireProtocol};
 use std::{marker::PhantomData, rc::Rc};
 
 use crate::chain::state::StateManager;
@@ -19,7 +19,12 @@ pub trait Chain {
 pub trait GenericChainBlueprint {
     const CHAIN_UID: u16;
     type ConfigManager: traits::ConfigManager + 'static;
-    type StateManager: StateManager<Config = <Self::ConfigManager as ConfigManager>::Config> + 'static;
+    type Protocol: WireProtocol;
+    type StateManager: StateManager<
+        Config = <Self::ConfigManager as ConfigManager>::Config,
+        UpdatePayload = <Self::Protocol as WireProtocol>::UpdatePayload,
+        StatePayload = <Self::Protocol as WireProtocol>::StatePayload,
+    > + 'static;
 }
 
 pub struct GenericChain<Blueprint: GenericChainBlueprint> {
@@ -44,7 +49,7 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
 
     fn get_state(&self, marshaller: &mut StatePayloadMarshaller) {
         let state = self.state.get_state();
-        marshaller.state(Blueprint::CHAIN_UID, state).unwrap();
+        marshaller.state::<Blueprint::Protocol>(Blueprint::CHAIN_UID, state).unwrap();
     }
 
     // pub fn are_updates_valid(&self, _: ChainUpdates) -> bool {
@@ -56,7 +61,7 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
         // TODO: Add timer checks
         // TODO: Add check for conflicts
 
-        let updates = updates.updates(Blueprint::CHAIN_UID).unwrap();
+        let updates = updates.updates::<Blueprint::Protocol>(Blueprint::CHAIN_UID).unwrap();
         self.state.update_state(updates);
     }
 

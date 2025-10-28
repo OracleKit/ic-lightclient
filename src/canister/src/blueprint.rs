@@ -3,6 +3,7 @@ use crate::{
     ethereum::{EthereumConfigManager, EthereumStateManager},
 };
 use ic_lightclient_ethereum::helios::spec::MainnetConsensusSpec;
+use ic_lightclient_wire::EthereumWireProtocol;
 
 pub struct EthereumChainBlueprint;
 
@@ -10,6 +11,7 @@ impl GenericChainBlueprint for EthereumChainBlueprint {
     const CHAIN_UID: u16 = 1;
     type ConfigManager = EthereumConfigManager;
     type StateManager = EthereumStateManager<MainnetConsensusSpec>;
+    type Protocol = EthereumWireProtocol<MainnetConsensusSpec>;
 }
 
 pub async fn build_chain_from_uid(uid: u16) -> Box<dyn Chain> {
