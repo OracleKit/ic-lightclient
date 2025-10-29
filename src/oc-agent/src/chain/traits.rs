@@ -1,9 +1,9 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use serde::{Serialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Serialize};
 
 #[async_trait]
-pub trait StateMachine : Send {
+pub trait StateMachine: Send {
     type Config: DeserializeOwned + 'static;
     type CanisterStatePayload: DeserializeOwned + 'static;
     type CanisterUpdatePayload: Serialize + 'static;

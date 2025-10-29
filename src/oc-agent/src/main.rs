@@ -7,13 +7,13 @@ mod http;
 mod icp;
 mod util;
 
+use crate::{cli::Cli, config::Config};
 use anyhow::Result;
 use chain::ChainManager;
 use ic_lightclient_wire::{StatePayloadParser, UpdatePayloadMarshaller};
 use icp::ICP;
 use std::time::Duration;
 use tokio::time::sleep;
-use crate::{cli::Cli, config::Config};
 
 #[tokio::main]
 async fn main() -> Result<()> {

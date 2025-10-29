@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::{blueprint::EthereumMainnetBlueprint, chain::chain::{Chain, GenericChain}};
+use crate::{
+    blueprint::EthereumMainnetBlueprint,
+    chain::chain::{Chain, GenericChain},
+};
 use tokio::sync::Mutex;
 
 #[derive(Clone)]
