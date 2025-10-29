@@ -67,6 +67,10 @@ impl UpdatePayloadMarshaller {
         Ok(())
     }
 
+    pub fn has_updates(&self) -> bool {
+        !self.updates.updates.is_empty()
+    }
+
     pub fn build(&self) -> Result<Vec<u8>> {
         serde_json::to_vec(&self.updates).context("Failed to marshal canister update")
     }

@@ -1,3 +1,4 @@
+mod blueprint;
 mod chain;
 mod cli;
 mod config;
@@ -6,15 +7,13 @@ mod http;
 mod icp;
 mod util;
 
+use crate::{cli::Cli, config::Config};
 use anyhow::Result;
 use chain::ChainManager;
-use ic_lightclient_ethereum::{config::EthereumConfigPopulated, helios::spec::MainnetConsensusSpec};
-use ic_lightclient_wire::{EthereumWireProtocol, StatePayloadParser, UpdatePayloadMarshaller};
+use ic_lightclient_wire::{StatePayloadParser, UpdatePayloadMarshaller};
 use icp::ICP;
 use std::time::Duration;
 use tokio::time::sleep;
-
-use crate::{cli::Cli, config::Config};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -26,30 +25,23 @@ async fn main() -> Result<()> {
     ICP::init().await;
 
     let config = ICP::get_canister_config().await;
-    let config: EthereumConfigPopulated = serde_json::from_slice(config.as_slice()).unwrap();
 
     let chain_manager = ChainManager::new();
-    chain_manager.ethereum.try_lock().unwrap().init(config).await;
+    chain_manager.ethereum.try_lock().unwrap().init(config).await.unwrap();
 
     loop {
         let state = ICP::get_canister_state().await;
         let state = StatePayloadParser::new(state).unwrap();
+        let mut updates = UpdatePayloadMarshaller::new();
         let chain_manager = chain_manager.clone();
+        let ethereum = chain_manager.ethereum;
 
         tokio::spawn(async move {
-            let Ok(mut ethereum) = chain_manager.ethereum.try_lock() else {
-                return;
-            };
-            let state = state.state::<EthereumWireProtocol<MainnetConsensusSpec>>(1).unwrap();
-            let updates = ethereum.get_updates(state).await;
+            let mut ethereum = ethereum.lock().await;
+            ethereum.get_updates(&state, &mut updates).await.unwrap();
 
-            if let Some(updates) = updates {
-                let mut marshaller = UpdatePayloadMarshaller::new();
-                marshaller
-                    .updates::<EthereumWireProtocol<MainnetConsensusSpec>>(1, updates)
-                    .unwrap();
-
-                ICP::update_canister_state(marshaller.build().unwrap()).await;
+            if updates.has_updates() {
+                ICP::update_canister_state(updates.build().unwrap()).await;
             }
         });
 
