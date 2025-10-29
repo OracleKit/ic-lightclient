@@ -18,3 +18,4 @@ ic-lightclient-wire = { path = "../wire" }
 serde_json.workspace = true
 anyhow.workspace = true
 clap.workspace = true
+async-trait.workspace = true

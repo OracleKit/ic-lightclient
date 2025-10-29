@@ -2090,6 +2090,7 @@ dependencies = [
  "alloy-primitives",
  "alloy-rpc-types-eth",
  "anyhow",
+ "async-trait",
  "clap",
  "ic-agent",
  "ic-lightclient-ethereum",

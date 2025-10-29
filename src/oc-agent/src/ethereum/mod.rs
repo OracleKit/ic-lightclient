@@ -2,7 +2,9 @@ mod api;
 mod diff;
 
 use alloy_primitives::B256;
+use anyhow::Result;
 use api::{ConsensusApi, ExecutionApi};
+use async_trait::async_trait;
 use diff::EthereumStateDiff;
 use ic_lightclient_ethereum::{
     config::EthereumConfigPopulated,
@@ -16,6 +18,8 @@ use ic_lightclient_ethereum::{
 use ic_lightclient_wire::{Block, LightClientStatePayload, LightClientUpdatePayload};
 use std::time::SystemTime;
 
+use crate::chain::StateMachine;
+
 const MAX_REQUEST_LIGHT_CLIENT_UPDATES: u8 = 128;
 
 #[derive(Default)]
@@ -28,12 +32,17 @@ pub struct EthereumChain {
     state_differ: EthereumStateDiff<MainnetConsensusSpec>,
 }
 
-impl EthereumChain {
-    pub fn new() -> Self {
+#[async_trait]
+impl StateMachine for EthereumChain {
+    type Config = EthereumConfigPopulated;
+    type CanisterStatePayload = LightClientStatePayload<MainnetConsensusSpec>;
+    type CanisterUpdatePayload = LightClientUpdatePayload<MainnetConsensusSpec>;
+
+    fn new() -> Self {
         Self::default()
     }
 
-    pub async fn init(&mut self, config: EthereumConfigPopulated) {
+    async fn init(&mut self, config: EthereumConfigPopulated) -> Result<()> {
         ExecutionApi::init(config.execution_api.clone());
         ConsensusApi::init(config.consensus_api.clone());
 
@@ -47,12 +56,14 @@ impl EthereumChain {
         self.light_client_store.bootstrap(&bootstrap).unwrap();
         self.state_differ.add_bootstrap(bootstrap);
         println!("Ethereum light client initialized with bootstrap data.");
+
+        Ok(())
     }
 
-    pub async fn get_updates(
+    async fn get_updates(
         &mut self,
         canister_state: LightClientStatePayload<MainnetConsensusSpec>,
-    ) -> Option<Vec<LightClientUpdatePayload<MainnetConsensusSpec>>> {
+    ) -> Vec<LightClientUpdatePayload<MainnetConsensusSpec>> {
         self.check_and_sync().await;
 
         // check for next sync committee
@@ -63,12 +74,14 @@ impl EthereumChain {
             let block = self.get_latest_block_update().await;
             updates.push(block);
 
-            Some(updates)
+            updates
         } else {
-            None
+            vec![]
         }
     }
+}
 
+impl EthereumChain {
     async fn get_latest_block_update(&self) -> LightClientUpdatePayload<MainnetConsensusSpec> {
         let base_gas_fee = ExecutionApi::base_gas_fee().await.try_into().unwrap();
         let max_priority_fee = ExecutionApi::max_priority_fee().await.try_into().unwrap();
