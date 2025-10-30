@@ -48,11 +48,16 @@ fn get_state() -> Vec<u8> {
 }
 
 #[ic_cdk::query]
-fn get_chain_config() -> Vec<u8> {
+fn list_chain_uids() -> Vec<u16> {
+    GlobalState::chain_uids()
+}
+
+#[ic_cdk::query]
+fn get_chain_config(uid: u16) -> Vec<u8> {
     let state = GlobalState::state();
     let state = state.borrow();
-    let ethereum = state.chains.get(&1).unwrap();
-    ethereum.get_config()
+    let chain = state.chains.get(&uid).unwrap();
+    chain.get_config()
 }
 
 #[ic_cdk::update]

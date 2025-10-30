@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Context, Result};
-use ic_lightclient_ethereum::config::EthereumConfig;
 use ic_lightclient_types::config::IcpConfig;
 use serde::Deserialize;
 use std::{fs::read_to_string, sync::OnceLock};
@@ -9,7 +8,6 @@ static INNER: OnceLock<ConfigSchema> = OnceLock::new();
 #[derive(Deserialize)]
 struct ConfigSchema {
     icp: IcpConfig,
-    ethereum: EthereumConfig,
 }
 
 pub struct Config {}
@@ -25,10 +23,6 @@ impl Config {
 
     pub fn icp() -> IcpConfig {
         INNER.get().unwrap().icp.clone()
-    }
-
-    pub fn ethereum() -> EthereumConfig {
-        INNER.get().unwrap().ethereum.clone()
     }
 }
 
