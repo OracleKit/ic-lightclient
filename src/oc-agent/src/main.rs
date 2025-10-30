@@ -26,6 +26,8 @@ async fn main() -> Result<()> {
 
     let chain_manager = ChainManager::new();
     let configured_chains = ICP::list_chain_uids().await;
+    println!("Received chains for configuration: {:?}", &configured_chains);
+
     for uid in configured_chains {
         let config = ICP::get_canister_config(uid).await;
         let chain = build_chain_from_uid(uid);
@@ -49,6 +51,7 @@ async fn main() -> Result<()> {
                 let mut chain = chain.lock().await;
                 let mut updates = updates.lock().await;
                 chain.get_updates(&state, &mut updates).await.unwrap();
+                println!("Ran updates for chain: {}", uid);
             });
         }
 
