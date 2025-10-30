@@ -17,6 +17,10 @@ impl ChainManager {
         self.chains.get(uid).unwrap().clone()
     }
 
+    pub fn set(&mut self, uid: u16, chain: Arc<Mutex<dyn Chain + Send>>) {
+        self.chains.insert(uid, chain);
+    }
+
     pub fn list(&self) -> Vec<u16> {
         self.chains.keys().map(|k| k.clone()).collect()
     }
