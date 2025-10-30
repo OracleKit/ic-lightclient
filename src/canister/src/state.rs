@@ -41,7 +41,7 @@ impl GlobalState {
     pub fn chain_uids() -> Vec<u16> {
         CHAINS.with(|state| {
             let state = state.get().unwrap().borrow();
-            state.chains.keys().map(|k| { k.clone() }).collect()
+            state.chains.keys().map(|k| k.clone()).collect()
         })
     }
 }

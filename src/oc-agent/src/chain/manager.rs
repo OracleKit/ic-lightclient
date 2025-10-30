@@ -1,5 +1,5 @@
-use std::{collections::HashMap, sync::Arc};
 use crate::chain::chain::Chain;
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
 
 #[derive(Clone)]
@@ -16,7 +16,7 @@ impl ChainManager {
     pub fn get(&self, uid: &u16) -> Arc<Mutex<dyn Chain + Send>> {
         self.chains.get(uid).unwrap().clone()
     }
-    
+
     pub fn list(&self) -> Vec<u16> {
         self.chains.keys().map(|k| k.clone()).collect()
     }
