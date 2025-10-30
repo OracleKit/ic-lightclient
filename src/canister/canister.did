@@ -11,12 +11,14 @@ type HttpResponse = record {
 };
 service : {
   get_base_gas_fee : () -> (nat) query;
+  get_chain_config : (nat16) -> (blob) query;
   get_config : (nat16) -> (opt text) query;
   get_latest_block_hash : () -> (text) query;
   get_max_priority_fee : () -> (nat) query;
   get_state : () -> (blob) query;
   http_request : (HttpRequest) -> (HttpResponse) query;
   init : (vec nat16) -> ();
+  list_chain_uids : () -> (vec nat16) query;
   list_configs : () -> (vec nat16) query;
   set_config : (nat16, text) -> ();
   update_state : (blob) -> ();

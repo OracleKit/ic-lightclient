@@ -47,14 +47,27 @@ impl ICP {
         state
     }
 
-    pub async fn get_canister_config() -> Vec<u8> {
+    pub async fn list_chain_uids() -> Vec<u16> {
         let canister = ICP::canister();
-        let (state,) = canister
-            .query("get_chain_config")
+        let (uids,) = canister
+            .query("list_chain_uids")
             .build()
             .call()
             .await
-            .expect("Failed to get canister state");
+            .expect("Failed to get configured chain uids");
+
+        uids
+    }
+
+    pub async fn get_canister_config(uid: u16) -> Vec<u8> {
+        let canister = ICP::canister();
+        let (state,) = canister
+            .query("get_chain_config")
+            .with_arg(uid)
+            .build()
+            .call()
+            .await
+            .expect("Failed to get canister config");
 
         state
     }

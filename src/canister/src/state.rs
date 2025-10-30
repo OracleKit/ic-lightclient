@@ -37,4 +37,11 @@ impl GlobalState {
     pub fn state() -> Rc<RefCell<ChainState>> {
         CHAINS.with(|chains| chains.get().unwrap().clone())
     }
+
+    pub fn chain_uids() -> Vec<u16> {
+        CHAINS.with(|state| {
+            let state = state.get().unwrap().borrow();
+            state.chains.keys().map(|k| k.clone()).collect()
+        })
+    }
 }
