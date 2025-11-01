@@ -29,6 +29,8 @@ pub struct EthereumChain {
     forks: Forks,
     last_updated_time_sec: u64,
     state_differ: EthereumStateDiff<MainnetConsensusSpec>,
+    consensus_api: ConsensusApi,
+    execution_api: ExecutionApi,
 }
 
 #[async_trait]
@@ -42,15 +44,15 @@ impl StateMachine for EthereumChain {
     }
 
     async fn init(&mut self, config: EthereumConfigPopulated) -> Result<()> {
-        ExecutionApi::init(config.execution_api.clone())?;
-        ConsensusApi::init(config.consensus_api.clone())?;
+        self.execution_api = ExecutionApi::new(config.execution_api.clone());
+        self.consensus_api = ConsensusApi::new(config.consensus_api.clone());
 
         self.genesis_time = config.genesis_time;
         self.genesis_validator_root = config.genesis_validator_root;
         self.forks = config.forks.clone();
         let checkpoint = config.checkpoint.checkpoint_block_root;
 
-        let bootstrap = ConsensusApi::bootstrap(checkpoint).await?;
+        let bootstrap = self.consensus_api.bootstrap(checkpoint).await?;
         self.light_client_store = EthereumLightClientConsensus::new(config);
         self.light_client_store.bootstrap(&bootstrap)?;
         self.state_differ.add_bootstrap(bootstrap);
@@ -82,9 +84,9 @@ impl StateMachine for EthereumChain {
 
 impl EthereumChain {
     async fn get_latest_block_update(&self) -> Result<LightClientUpdatePayload<MainnetConsensusSpec>> {
-        let base_gas_fee = ExecutionApi::base_gas_fee().await?;
+        let base_gas_fee = self.execution_api.base_gas_fee().await?;
         let base_gas_fee = base_gas_fee.try_into()?;
-        let max_priority_fee = ExecutionApi::max_priority_fee().await?;
+        let max_priority_fee = self.execution_api.max_priority_fee().await?;
         let max_priority_fee = max_priority_fee.try_into()?;
 
         Ok(LightClientUpdatePayload::Block(Block { base_gas_fee, max_priority_fee }))
@@ -111,7 +113,7 @@ impl EthereumChain {
         let finalized_period = calc_sync_period::<MainnetConsensusSpec>(finalized_slot);
 
         if finalized_period == optimistic_period && is_next_sync_committee_known == false {
-            let update = ConsensusApi::updates(finalized_period, 1).await?;
+            let update = self.consensus_api.updates(finalized_period, 1).await?;
 
             if update.len() == 1 {
                 self.verify_and_apply_generic_update((&update[0]).into())?;
@@ -139,14 +141,17 @@ impl EthereumChain {
                 let batch_size =
                     std::cmp::min(current_period - finalized_period, MAX_REQUEST_LIGHT_CLIENT_UPDATES.into());
 
-                let update = ConsensusApi::updates(finalized_period, batch_size).await?;
+                let update = self.consensus_api.updates(finalized_period, batch_size).await?;
                 updates.extend(update);
 
                 finalized_period += batch_size;
             }
         }
 
-        let update = ConsensusApi::updates(finalized_period, MAX_REQUEST_LIGHT_CLIENT_UPDATES.into()).await?;
+        let update = self
+            .consensus_api
+            .updates(finalized_period, MAX_REQUEST_LIGHT_CLIENT_UPDATES.into())
+            .await?;
         updates.extend(update);
 
         for update in updates {
@@ -157,8 +162,11 @@ impl EthereumChain {
     }
 
     async fn sync_head(&mut self) -> Result<()> {
-        let optimistic_update = tokio::spawn(async { ConsensusApi::optimistic_update().await });
-        let finality_update = tokio::spawn(async { ConsensusApi::finality_update().await });
+        let consensus_api = self.consensus_api.clone();
+        let consensus_api_2 = self.consensus_api.clone();
+
+        let optimistic_update = tokio::spawn(async move { consensus_api.optimistic_update().await });
+        let finality_update = tokio::spawn(async move { consensus_api_2.finality_update().await });
 
         let optimistic_update = optimistic_update.await??;
         let finality_update = finality_update.await??;

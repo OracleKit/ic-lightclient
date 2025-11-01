@@ -1,16 +1,8 @@
 use crate::http::HttpClient;
 use alloy_primitives::U256;
 use alloy_rpc_types_eth::Header;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use std::sync::OnceLock;
-
-static INNER: OnceLock<Inner> = OnceLock::new();
-
-#[derive(Debug)]
-struct Inner {
-    url: String,
-}
 
 #[derive(Serialize)]
 struct JsonRpcRequestWrapper<T> {
@@ -29,19 +21,22 @@ struct JsonRpcResponseWrapper<T> {
     result: T,
 }
 
-pub struct ExecutionApi;
+#[derive(Default, Clone)]
+pub struct ExecutionApi {
+    url: String,
+}
 
 impl ExecutionApi {
-    pub fn init(url: String) -> Result<()> {
-        INNER.set(Inner { url }).map_err(|_| anyhow!("ExecutionApi already init."))
+    pub fn new(url: String) -> Self {
+        Self { url }
     }
 
     async fn request<Request: Serialize, Response: DeserializeOwned>(
+        &self,
         method: &str,
         request: Request,
     ) -> Result<Response> {
-        let inner = INNER.get().ok_or(anyhow!("ExecutionApi request() called before init()"))?;
-        let url = &inner.url;
+        let url = &self.url;
 
         let response = HttpClient::post(url)
             .header("Content-Type", "application/json")
@@ -60,20 +55,20 @@ impl ExecutionApi {
     }
 
     #[allow(dead_code)]
-    pub async fn latest_block_number() -> Result<U256> {
-        Self::request("eth_blockNumber", ()).await
+    pub async fn latest_block_number(&self) -> Result<U256> {
+        self.request("eth_blockNumber", ()).await
     }
 
     #[allow(dead_code)]
-    pub async fn block_header_by_number(block_number: U256) -> Result<Header> {
-        Self::request("eth_getBlockByNumber", (block_number, false)).await
+    pub async fn block_header_by_number(&self, block_number: U256) -> Result<Header> {
+        self.request("eth_getBlockByNumber", (block_number, false)).await
     }
 
-    pub async fn base_gas_fee() -> Result<U256> {
-        Self::request("eth_gasPrice", ()).await
+    pub async fn base_gas_fee(&self) -> Result<U256> {
+        self.request("eth_gasPrice", ()).await
     }
 
-    pub async fn max_priority_fee() -> Result<U256> {
-        Self::request("eth_maxPriorityFeePerGas", ()).await
+    pub async fn max_priority_fee(&self) -> Result<U256> {
+        self.request("eth_maxPriorityFeePerGas", ()).await
     }
 }
