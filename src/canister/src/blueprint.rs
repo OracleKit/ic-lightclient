@@ -2,6 +2,7 @@ use crate::{
     chain::{Chain, GenericChainBlueprint, GenericChainFactory},
     ethereum::{EthereumConfigManager, EthereumStateManager},
 };
+use anyhow::{anyhow, Result};
 use ic_lightclient_ethereum::helios::spec::MainnetConsensusSpec;
 use ic_lightclient_wire::EthereumWireProtocol;
 
@@ -14,9 +15,9 @@ impl GenericChainBlueprint for EthereumChainBlueprint {
     type Protocol = EthereumWireProtocol<MainnetConsensusSpec>;
 }
 
-pub async fn build_chain_from_uid(uid: u16) -> Box<dyn Chain> {
+pub async fn build_chain_from_uid(uid: u16) -> Result<Box<dyn Chain>> {
     match uid {
         EthereumChainBlueprint::CHAIN_UID => GenericChainFactory::build::<EthereumChainBlueprint>().await,
-        _ => panic!("Invalid"),
+        _ => Err(anyhow!("Invalid uid")),
     }
 }

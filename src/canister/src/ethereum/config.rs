@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Ok, Result};
 use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod,
 };
@@ -14,8 +15,8 @@ pub struct EthereumConfigManager {
 impl ConfigManager for EthereumConfigManager {
     type Config = EthereumConfigPopulated;
 
-    async fn new(config: String) -> Self {
-        let config: EthereumConfig = serde_json::from_str(&config).unwrap();
+    async fn new(config: String) -> Result<Self> {
+        let config: EthereumConfig = serde_json::from_str(&config)?;
         let url = config.checkpoint_sync_host.clone();
         let url = format!("{}/checkpointz/v1/beacon/slots", url);
 
@@ -31,13 +32,13 @@ impl ConfigManager for EthereumConfigManager {
             200_000_000,
         )
         .await
-        .unwrap()
+        .map_err(|e| anyhow!("HTTP Request failed: {:?} {}", e.0, e.1))?
         .0;
 
-        let checkpoint = parse_checkpointz_output_to_config(res.body);
+        let checkpoint = parse_checkpointz_output_to_config(res.body)?;
         let populated_config = config.populate(checkpoint);
 
-        Self { config: populated_config }
+        Ok(Self { config: populated_config })
     }
 
     fn get_config(&self) -> &EthereumConfigPopulated {
