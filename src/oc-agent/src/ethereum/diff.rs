@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Result};
 use ic_lightclient_ethereum::{
     helios::{
         spec::ConsensusSpec,
@@ -26,7 +27,7 @@ impl<S: ConsensusSpec> EthereumStateDiff<S> {
         &self,
         canister_state: &LightClientStatePayload<S>,
         store: &EthereumLightClientConsensus<S>,
-    ) -> Vec<LightClientUpdatePayload<S>> {
+    ) -> Result<Vec<LightClientUpdatePayload<S>>> {
         match &canister_state {
             LightClientStatePayload::Bootstrap(_state) => {
                 // if root != bootstrap_update.header.beacon.tree_hash_root() {
@@ -41,7 +42,7 @@ impl<S: ConsensusSpec> EthereumStateDiff<S> {
                 let slot = state.optimistic_header.beacon.slot;
                 println!("Received request for slot: {}!", slot);
 
-                return self.get_diff_updates_for_active(&state, &store);
+                return Ok(self.get_diff_updates_for_active(&state, &store));
             }
         }
     }
@@ -49,16 +50,15 @@ impl<S: ConsensusSpec> EthereumStateDiff<S> {
     fn get_diff_updates_for_bootstrap(
         &self,
         store: &EthereumLightClientConsensus<S>,
-    ) -> Vec<LightClientUpdatePayload<S>> {
-        let mut updates = vec![LightClientUpdatePayload::Bootstrap(
-            self.bootstrap.as_ref().expect("Bootstrap update not found").clone(),
-        )];
+    ) -> Result<Vec<LightClientUpdatePayload<S>>> {
+        let bootstrap = self.bootstrap.as_ref().ok_or(anyhow!("Bootstrap update not found"))?;
+        let mut updates = vec![LightClientUpdatePayload::Bootstrap(bootstrap.clone())];
 
         if let Some(diff) = store.diff(&LightClientStore::default()) {
             updates.push(LightClientUpdatePayload::Update(diff));
         }
 
-        updates
+        Ok(updates)
     }
 
     fn get_diff_updates_for_active(

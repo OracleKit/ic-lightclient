@@ -46,7 +46,7 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
         updates_marshaller: &mut UpdatePayloadMarshaller,
     ) -> Result<()> {
         let state = state_parser.state::<Blueprint::WireProtocol>(Blueprint::CHAIN_UID)?;
-        let updates = self.state_machine.get_updates(state).await;
+        let updates = self.state_machine.get_updates(state).await?;
         if updates.len() > 0 {
             updates_marshaller.updates::<Blueprint::WireProtocol>(Blueprint::CHAIN_UID, updates)?;
         }

@@ -10,5 +10,8 @@ pub trait StateMachine: Send {
 
     fn new() -> Self;
     async fn init(&mut self, config: Self::Config) -> Result<()>;
-    async fn get_updates(&mut self, canister_state: Self::CanisterStatePayload) -> Vec<Self::CanisterUpdatePayload>;
+    async fn get_updates(
+        &mut self,
+        canister_state: Self::CanisterStatePayload,
+    ) -> Result<Vec<Self::CanisterUpdatePayload>>;
 }
