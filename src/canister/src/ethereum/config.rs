@@ -1,3 +1,4 @@
+use crate::chain::ConfigManager;
 use anyhow::{anyhow, Ok, Result};
 use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod,
@@ -6,7 +7,6 @@ use ic_lightclient_ethereum::{
     checkpoint::parse_checkpointz_output_to_config,
     config::{EthereumConfig, EthereumConfigPopulated},
 };
-use crate::chain::ConfigManager;
 
 pub struct EthereumConfigManager {
     config: EthereumConfigPopulated,

@@ -1,4 +1,4 @@
-use crate::chain::{ConfigManager, state::StateManager};
+use crate::chain::{state::StateManager, ConfigManager};
 use anyhow::Result;
 use async_trait::async_trait;
 use ic_lightclient_wire::{StatePayloadMarshaller, UpdatePayloadParser, WireProtocol};
