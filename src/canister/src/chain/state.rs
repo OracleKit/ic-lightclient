@@ -1,14 +1,13 @@
 use anyhow::Result;
-use ic_lightclient_types::traits::ConfigManagerDyn;
 use serde::{de::DeserializeOwned, Serialize};
-use std::{fmt::Debug, rc::Rc};
+use std::fmt::Debug;
 
 pub trait StateManager {
     type Config: Debug;
     type StatePayload: Serialize + Debug;
     type UpdatePayload: DeserializeOwned + Debug;
 
-    fn new(config: Rc<dyn ConfigManagerDyn<Config = Self::Config>>) -> Self;
+    fn new(config: Self::Config) -> Self;
     fn get_state(&self) -> Result<Self::StatePayload>;
     fn update_state(&mut self, updates: Vec<Self::UpdatePayload>) -> Result<()>;
     fn get_latest_block_hash(&self) -> String;

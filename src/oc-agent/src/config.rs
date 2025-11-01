@@ -25,28 +25,3 @@ impl Config {
         INNER.get().unwrap().icp.clone()
     }
 }
-
-// fn icp_config_local() -> ICPConfig {
-//     ICPConfig {
-//         canister_id: Principal::from_str("uxrrr-q7777-77774-qaaaq-cai").unwrap(),
-//         agent_url: "http://127.0.0.1:4943".into(),
-//     }
-// }
-
-// fn icp_config_prod() -> ICPConfig {
-//     ICPConfig {
-//         canister_id: Principal::from_str("mawej-zyaaa-aaaah-qqbqa-cai").unwrap(),
-//         agent_url: "https://icp-api.io".into(),
-//     }
-// }
-
-// pub fn load_config() -> Config {
-//     Config {
-//         ethereum: mainnet(),
-//         icp: if env::var("OKLC_PROD").is_err() {
-//             icp_config_local()
-//         } else {
-//             icp_config_prod()
-//         },
-//     }
-// }
