@@ -6,7 +6,7 @@ use ic_lightclient_ethereum::{
     checkpoint::parse_checkpointz_output_to_config,
     config::{EthereumConfig, EthereumConfigPopulated},
 };
-use ic_lightclient_types::traits::ConfigManager;
+use crate::chain::ConfigManager;
 
 pub struct EthereumConfigManager {
     config: EthereumConfigPopulated,

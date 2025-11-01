@@ -1,9 +1,8 @@
-use crate::chain::state::StateManager;
+use crate::chain::{ConfigManager, state::StateManager};
 use anyhow::Result;
 use async_trait::async_trait;
-use ic_lightclient_types::traits::{self, ConfigManager};
 use ic_lightclient_wire::{StatePayloadMarshaller, UpdatePayloadParser, WireProtocol};
-use std::{marker::PhantomData, rc::Rc};
+use std::marker::PhantomData;
 
 #[async_trait(?Send)]
 pub trait Chain {
@@ -18,7 +17,7 @@ pub trait Chain {
 
 pub trait GenericChainBlueprint {
     const CHAIN_UID: u16;
-    type ConfigManager: traits::ConfigManager + 'static;
+    type ConfigManager: ConfigManager + 'static;
     type Protocol: WireProtocol;
     type StateManager: StateManager<
             Config = <Self::ConfigManager as ConfigManager>::Config,
@@ -29,15 +28,15 @@ pub trait GenericChainBlueprint {
 
 pub struct GenericChain<Blueprint: GenericChainBlueprint> {
     state: Blueprint::StateManager,
-    config: Rc<Blueprint::ConfigManager>,
+    config: Blueprint::ConfigManager,
     blueprint: PhantomData<Blueprint>,
 }
 
 impl<Blueprint: GenericChainBlueprint> GenericChain<Blueprint> {
     pub async fn new(config: String) -> Result<Self> {
         let config_manager = Blueprint::ConfigManager::new(config).await?;
-        let config_manager = Rc::new(config_manager);
-        let state = Blueprint::StateManager::new(config_manager.clone());
+        let config = config_manager.get_config().clone();
+        let state = Blueprint::StateManager::new(config);
 
         Ok(Self { state, config: config_manager, blueprint: PhantomData })
     }
