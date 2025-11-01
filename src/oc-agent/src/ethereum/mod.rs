@@ -1,6 +1,7 @@
 mod api;
 mod diff;
 
+use crate::chain::StateMachine;
 use alloy_primitives::B256;
 use anyhow::Result;
 use api::{ConsensusApi, ExecutionApi};
@@ -17,8 +18,6 @@ use ic_lightclient_ethereum::{
 };
 use ic_lightclient_wire::{Block, LightClientStatePayload, LightClientUpdatePayload};
 use std::time::SystemTime;
-
-use crate::chain::StateMachine;
 
 const MAX_REQUEST_LIGHT_CLIENT_UPDATES: u8 = 128;
 
@@ -43,17 +42,17 @@ impl StateMachine for EthereumChain {
     }
 
     async fn init(&mut self, config: EthereumConfigPopulated) -> Result<()> {
-        ExecutionApi::init(config.execution_api.clone());
-        ConsensusApi::init(config.consensus_api.clone());
+        ExecutionApi::init(config.execution_api.clone())?;
+        ConsensusApi::init(config.consensus_api.clone())?;
 
         self.genesis_time = config.genesis_time;
         self.genesis_validator_root = config.genesis_validator_root;
         self.forks = config.forks.clone();
         let checkpoint = config.checkpoint.checkpoint_block_root;
 
-        let bootstrap = ConsensusApi::bootstrap(checkpoint).await;
+        let bootstrap = ConsensusApi::bootstrap(checkpoint).await?;
         self.light_client_store = EthereumLightClientConsensus::new(config);
-        self.light_client_store.bootstrap(&bootstrap).unwrap();
+        self.light_client_store.bootstrap(&bootstrap)?;
         self.state_differ.add_bootstrap(bootstrap);
         println!("Ethereum light client initialized with bootstrap data.");
 
@@ -63,40 +62,44 @@ impl StateMachine for EthereumChain {
     async fn get_updates(
         &mut self,
         canister_state: LightClientStatePayload<MainnetConsensusSpec>,
-    ) -> Vec<LightClientUpdatePayload<MainnetConsensusSpec>> {
-        self.check_and_sync().await;
+    ) -> Result<Vec<LightClientUpdatePayload<MainnetConsensusSpec>>> {
+        self.check_and_sync().await?;
 
         // check for next sync committee
 
-        let mut updates = self.state_differ.get_diff_updates(&canister_state, &self.light_client_store);
+        let mut updates = self.state_differ.get_diff_updates(&canister_state, &self.light_client_store)?;
 
         if updates.len() > 0 {
-            let block = self.get_latest_block_update().await;
+            let block = self.get_latest_block_update().await?;
             updates.push(block);
 
-            updates
+            Ok(updates)
         } else {
-            vec![]
+            Ok(vec![])
         }
     }
 }
 
 impl EthereumChain {
-    async fn get_latest_block_update(&self) -> LightClientUpdatePayload<MainnetConsensusSpec> {
-        let base_gas_fee = ExecutionApi::base_gas_fee().await.try_into().unwrap();
-        let max_priority_fee = ExecutionApi::max_priority_fee().await.try_into().unwrap();
+    async fn get_latest_block_update(&self) -> Result<LightClientUpdatePayload<MainnetConsensusSpec>> {
+        let base_gas_fee = ExecutionApi::base_gas_fee().await?;
+        let base_gas_fee = base_gas_fee.try_into()?;
+        let max_priority_fee = ExecutionApi::max_priority_fee().await?;
+        let max_priority_fee = max_priority_fee.try_into()?;
 
-        LightClientUpdatePayload::Block(Block { base_gas_fee, max_priority_fee })
+        Ok(LightClientUpdatePayload::Block(Block { base_gas_fee, max_priority_fee }))
     }
 
-    async fn check_and_sync(&mut self) {
-        let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
-        let current_time_sec = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
+    async fn check_and_sync(&mut self) -> Result<()> {
+        let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
+        let current_time_ns = current_time_ns.as_nanos().try_into()?;
+        let current_time_sec = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
+        let current_time_sec = current_time_sec.as_secs();
         let genesis_time = self.genesis_time;
-        let current_slot = expected_current_slot(current_time_ns.try_into().unwrap(), genesis_time);
+        let current_slot = expected_current_slot(current_time_ns, genesis_time);
 
         if current_time_sec - self.last_updated_time_sec < 12 {
-            return;
+            return Ok(());
         }
 
         let optimistic_slot = self.light_client_store.get_optimistic_slot();
@@ -108,15 +111,15 @@ impl EthereumChain {
         let finalized_period = calc_sync_period::<MainnetConsensusSpec>(finalized_slot);
 
         if finalized_period == optimistic_period && is_next_sync_committee_known == false {
-            let update = ConsensusApi::updates(finalized_period, 1).await;
+            let update = ConsensusApi::updates(finalized_period, 1).await?;
 
             if update.len() == 1 {
-                self.verify_and_apply_generic_update((&update[0]).into());
+                self.verify_and_apply_generic_update((&update[0]).into())?;
             }
         } else if finalized_period + 1 < current_period {
-            self.sync(current_period, finalized_period).await;
+            self.sync(current_period, finalized_period).await?;
         } else {
-            self.sync_head().await;
+            self.sync_head().await?;
         }
 
         let new_optimistic_slot = self.light_client_store.get_optimistic_slot();
@@ -124,9 +127,11 @@ impl EthereumChain {
         if new_optimistic_slot != optimistic_slot {
             self.last_updated_time_sec = current_time_sec;
         }
+
+        Ok(())
     }
 
-    async fn sync(&mut self, current_period: u64, mut finalized_period: u64) {
+    async fn sync(&mut self, current_period: u64, mut finalized_period: u64) -> Result<()> {
         println!("Syncing...");
         let mut updates: Vec<Update<MainnetConsensusSpec>> = vec![];
         if current_period - finalized_period >= 128 {
@@ -134,41 +139,39 @@ impl EthereumChain {
                 let batch_size =
                     std::cmp::min(current_period - finalized_period, MAX_REQUEST_LIGHT_CLIENT_UPDATES.into());
 
-                let update = ConsensusApi::updates(finalized_period, batch_size).await;
+                let update = ConsensusApi::updates(finalized_period, batch_size).await?;
                 updates.extend(update);
 
                 finalized_period += batch_size;
             }
         }
 
-        let update = ConsensusApi::updates(finalized_period, MAX_REQUEST_LIGHT_CLIENT_UPDATES.into()).await;
+        let update = ConsensusApi::updates(finalized_period, MAX_REQUEST_LIGHT_CLIENT_UPDATES.into()).await?;
         updates.extend(update);
 
         for update in updates {
-            self.verify_and_apply_generic_update((&update).into());
+            self.verify_and_apply_generic_update((&update).into())?;
         }
 
-        self.sync_head().await;
+        self.sync_head().await
     }
 
-    async fn sync_head(&mut self) {
+    async fn sync_head(&mut self) -> Result<()> {
         let optimistic_update = tokio::spawn(async { ConsensusApi::optimistic_update().await });
         let finality_update = tokio::spawn(async { ConsensusApi::finality_update().await });
 
-        let optimistic_update = optimistic_update.await.unwrap();
-        let finality_update = finality_update.await.unwrap();
+        let optimistic_update = optimistic_update.await??;
+        let finality_update = finality_update.await??;
 
-        self.verify_and_apply_generic_update((&optimistic_update).into());
-        self.verify_and_apply_generic_update((&finality_update).into());
+        self.verify_and_apply_generic_update((&optimistic_update).into())?;
+        self.verify_and_apply_generic_update((&finality_update).into())?;
+        Ok(())
     }
 
-    fn verify_and_apply_generic_update(&mut self, update: GenericUpdate<MainnetConsensusSpec>) {
-        let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_nanos();
-        let current_time_ns = current_time_ns.try_into().unwrap();
-        let result = self.light_client_store.update(&update, current_time_ns);
-
-        if !result.is_ok() {
-            println!("Result is err: {:?}", result.err().unwrap());
-        }
+    fn verify_and_apply_generic_update(&mut self, update: GenericUpdate<MainnetConsensusSpec>) -> Result<()> {
+        let current_time_ns = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH)?;
+        let current_time_ns = current_time_ns.as_nanos();
+        let current_time_ns = current_time_ns.try_into()?;
+        self.light_client_store.update(&update, current_time_ns)
     }
 }

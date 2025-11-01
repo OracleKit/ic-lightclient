@@ -13,8 +13,8 @@ impl ChainManager {
         Self { chains }
     }
 
-    pub fn get(&self, uid: &u16) -> Arc<Mutex<dyn Chain + Send>> {
-        self.chains.get(uid).unwrap().clone()
+    pub fn get(&self, uid: &u16) -> Option<Arc<Mutex<dyn Chain + Send>>> {
+        self.chains.get(uid).map(|v| v.clone())
     }
 
     pub fn set(&mut self, uid: u16, chain: Arc<Mutex<dyn Chain + Send>>) {

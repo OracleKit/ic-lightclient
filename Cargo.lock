@@ -2094,6 +2094,7 @@ dependencies = [
  "clap",
  "ic-agent",
  "ic-lightclient-ethereum",
+ "ic-lightclient-oc-utils",
  "ic-lightclient-types",
  "ic-lightclient-wire",
  "ic-utils",
@@ -2108,6 +2109,7 @@ dependencies = [
 name = "ic-lightclient-oc-utils"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "candid",
  "ic-agent",
  "ic-lightclient-types",
