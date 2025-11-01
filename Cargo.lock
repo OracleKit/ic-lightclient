@@ -2134,6 +2134,7 @@ name = "ic-lightclient-types"
 version = "0.1.0"
 dependencies = [
  "alloy-primitives",
+ "anyhow",
  "candid",
  "ic_principal",
  "serde",

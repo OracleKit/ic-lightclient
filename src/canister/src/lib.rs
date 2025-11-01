@@ -12,7 +12,7 @@ use state::GlobalState;
 
 #[ic_cdk::query]
 fn get_latest_block_hash() -> String {
-    let state = GlobalState::state();
+    let state = GlobalState::state().unwrap();
     let state = state.borrow();
     let ethereum = state.chains.get(&1).unwrap();
     ethereum.get_latest_block_hash()
@@ -20,7 +20,7 @@ fn get_latest_block_hash() -> String {
 
 #[ic_cdk::query]
 fn get_base_gas_fee() -> u128 {
-    let state = GlobalState::state();
+    let state = GlobalState::state().unwrap();
     let state = state.borrow();
     let ethereum = state.chains.get(&1).unwrap();
     ethereum.get_base_gas_fee()
@@ -28,7 +28,7 @@ fn get_base_gas_fee() -> u128 {
 
 #[ic_cdk::query]
 fn get_max_priority_fee() -> u128 {
-    let state = GlobalState::state();
+    let state = GlobalState::state().unwrap();
     let state = state.borrow();
     let ethereum = state.chains.get(&1).unwrap();
     ethereum.get_max_priority_fee()
@@ -36,12 +36,12 @@ fn get_max_priority_fee() -> u128 {
 
 #[ic_cdk::query]
 fn get_state() -> Vec<u8> {
-    let state = GlobalState::state();
+    let state = GlobalState::state().unwrap();
     let state = state.borrow();
     let mut marshaller = StatePayloadMarshaller::new();
 
     for chain in state.chains.values() {
-        chain.get_state(&mut marshaller);
+        chain.get_state(&mut marshaller).unwrap();
     }
 
     marshaller.build().unwrap()
@@ -49,15 +49,15 @@ fn get_state() -> Vec<u8> {
 
 #[ic_cdk::query]
 fn list_chain_uids() -> Vec<u16> {
-    GlobalState::chain_uids()
+    GlobalState::chain_uids().unwrap()
 }
 
 #[ic_cdk::query]
 fn get_chain_config(uid: u16) -> Vec<u8> {
-    let state = GlobalState::state();
+    let state = GlobalState::state().unwrap();
     let state = state.borrow();
     let chain = state.chains.get(&uid).unwrap();
-    chain.get_config()
+    chain.get_config().unwrap()
 }
 
 #[ic_cdk::update]
@@ -65,11 +65,11 @@ fn update_state(updates: Vec<u8>) {
     let start = ic_cdk::api::performance_counter(0);
 
     let parser = UpdatePayloadParser::new(updates).unwrap();
-    let state = GlobalState::state();
+    let state = GlobalState::state().unwrap();
     let mut state = state.borrow_mut();
 
     for chain in state.chains.values_mut() {
-        chain.update_state(&parser);
+        chain.update_state(&parser).unwrap();
     }
 
     let end = ic_cdk::api::performance_counter(0);
@@ -84,7 +84,7 @@ fn http_request(_: HttpRequest) -> HttpResponse {
 
 #[ic_cdk::update]
 async fn init(chains: Vec<u16>) {
-    GlobalState::init(chains).await;
+    GlobalState::init(chains).await.unwrap();
 }
 
 #[ic_cdk::update]

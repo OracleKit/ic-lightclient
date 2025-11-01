@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use crate::chain::StateManager;
+use anyhow::Result;
 use ic_lightclient_ethereum::{
     config::EthereumConfigPopulated, helios::spec::ConsensusSpec, EthereumLightClientConsensus,
 };
@@ -29,11 +30,11 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned> StateManager for EthereumS
         Self { consensus, block: Block::default() }
     }
 
-    fn get_state(&self) -> Self::StatePayload {
-        self.consensus.get_state().unwrap()
+    fn get_state(&self) -> Result<Self::StatePayload> {
+        self.consensus.get_state()
     }
 
-    fn update_state(&mut self, updates: Vec<Self::UpdatePayload>) {
+    fn update_state(&mut self, updates: Vec<Self::UpdatePayload>) -> Result<()> {
         for update in updates {
             match update {
                 LightClientUpdatePayload::Block(block) => {
@@ -41,7 +42,7 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned> StateManager for EthereumS
                 }
 
                 LightClientUpdatePayload::Bootstrap(bootstrap) => {
-                    self.consensus.bootstrap(&bootstrap).unwrap();
+                    self.consensus.bootstrap(&bootstrap)?;
                 }
 
                 LightClientUpdatePayload::Update(update) => {
@@ -49,6 +50,8 @@ impl<S: ConsensusSpec + Serialize + DeserializeOwned> StateManager for EthereumS
                 }
             }
         }
+
+        Ok(())
     }
 
     fn get_latest_block_hash(&self) -> String {
