@@ -16,4 +16,4 @@ forks.deneb = { epoch = 269568, fork_version = "04000000" }
 forks.electra = { epoch = 364032, fork_version = "05000000" }
 
 [ethereum_holesky]
-execution_api = [ "https://holesky.drpc.org" ]
+execution_apis = [ "https://holesky.drpc.org" ]
