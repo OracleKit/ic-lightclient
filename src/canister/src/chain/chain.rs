@@ -66,7 +66,7 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
         if updates.len() > 0 {
             self.state.update_state(updates)?;
         }
-        
+
         Ok(())
     }
 

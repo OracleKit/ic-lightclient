@@ -29,12 +29,7 @@ impl UpdatePayloadParser {
     }
 
     pub fn updates<W: WireProtocol>(&self, uid: u16) -> Result<Vec<W::UpdatePayload>> {
-        let Some(raw_updates) = self
-            .updates
-            .updates
-            .get(&uid) else {
-                return Ok(vec![])
-            };
+        let Some(raw_updates) = self.updates.updates.get(&uid) else { return Ok(vec![]) };
 
         let updates = raw_updates
             .updates
