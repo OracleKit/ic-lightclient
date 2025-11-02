@@ -1,9 +1,11 @@
-use std::marker::PhantomData;
+use crate::protocol::WireProtocol;
 use ic_lightclient_ethereum::{
-    config::EthereumConfigPopulated, helios::{spec::ConsensusSpec, types::Bootstrap}, payload::{LightClientState, LightClientStoreDiff}
+    config::EthereumConfigPopulated,
+    helios::{spec::ConsensusSpec, types::Bootstrap},
+    payload::{LightClientState, LightClientStoreDiff},
 };
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use crate::protocol::WireProtocol;
+use std::marker::PhantomData;
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Block {

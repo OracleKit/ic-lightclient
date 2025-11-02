@@ -17,9 +17,7 @@ pub trait Chain {
 
 pub trait GenericChainBlueprint {
     const CHAIN_UID: u16;
-    type ConfigManager: ConfigManager<
-            Config = <Self::Protocol as WireProtocol>::Config
-        > + 'static;
+    type ConfigManager: ConfigManager<Config = <Self::Protocol as WireProtocol>::Config> + 'static;
     type Protocol: WireProtocol;
     type StateManager: StateManager<
             Config = <Self::Protocol as WireProtocol>::Config,

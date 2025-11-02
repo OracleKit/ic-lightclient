@@ -1,9 +1,9 @@
 use anyhow::{anyhow, Context, Result};
+use candid::Principal;
 use ic_agent::Agent;
 use ic_utils::{call::SyncCall, Canister};
-use std::sync::OnceLock;
 use serde::{Deserialize, Serialize};
-use candid::Principal;
+use std::sync::OnceLock;
 
 static INNER: OnceLock<Inner> = OnceLock::new();
 
