@@ -3,6 +3,7 @@ mod chain;
 mod config;
 mod ethereum;
 mod metrics;
+mod outcalls;
 mod state;
 
 use crate::config::ConfigManager;
@@ -11,27 +12,27 @@ use metrics::{serve_metrics, HttpRequest, HttpResponse};
 use state::GlobalState;
 
 #[ic_cdk::query]
-fn get_latest_block_hash() -> String {
+fn get_latest_block_hash(chain: u16) -> String {
     let state = GlobalState::state().unwrap();
     let state = state.borrow();
-    let ethereum = state.chains.get(&1).unwrap();
-    ethereum.get_latest_block_hash()
+    let chain = state.chains.get(&chain).unwrap();
+    chain.get_latest_block_hash()
 }
 
 #[ic_cdk::query]
-fn get_base_gas_fee() -> u128 {
+fn get_base_gas_fee(chain: u16) -> u128 {
     let state = GlobalState::state().unwrap();
     let state = state.borrow();
-    let ethereum = state.chains.get(&1).unwrap();
-    ethereum.get_base_gas_fee()
+    let chain = state.chains.get(&chain).unwrap();
+    chain.get_base_gas_fee()
 }
 
 #[ic_cdk::query]
-fn get_max_priority_fee() -> u128 {
+fn get_max_priority_fee(chain: u16) -> u128 {
     let state = GlobalState::state().unwrap();
     let state = state.borrow();
-    let ethereum = state.chains.get(&1).unwrap();
-    ethereum.get_max_priority_fee()
+    let chain = state.chains.get(&chain).unwrap();
+    chain.get_max_priority_fee()
 }
 
 #[ic_cdk::query]

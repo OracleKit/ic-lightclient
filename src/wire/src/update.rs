@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Ok, Result};
+use anyhow::{Context, Ok, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -29,11 +29,7 @@ impl UpdatePayloadParser {
     }
 
     pub fn updates<W: WireProtocol>(&self, uid: u16) -> Result<Vec<W::UpdatePayload>> {
-        let raw_updates = self
-            .updates
-            .updates
-            .get(&uid)
-            .ok_or(anyhow!("No updates for chain uid: {}", uid))?;
+        let Some(raw_updates) = self.updates.updates.get(&uid) else { return Ok(vec![]) };
 
         let updates = raw_updates
             .updates

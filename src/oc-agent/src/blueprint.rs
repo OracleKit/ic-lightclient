@@ -1,9 +1,10 @@
 use crate::{
     chain::{Chain, GenericChain, GenericChainBlueprint},
     ethereum::EthereumChain,
+    outcalls::OutcallsChain,
 };
 use ic_lightclient_ethereum::helios::spec::MainnetConsensusSpec;
-use ic_lightclient_wire::EthereumWireProtocol;
+use ic_lightclient_wire::{ethereum, outcalls};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -11,8 +12,16 @@ pub struct EthereumMainnetBlueprint;
 
 impl GenericChainBlueprint for EthereumMainnetBlueprint {
     const CHAIN_UID: u16 = 1;
-    type WireProtocol = EthereumWireProtocol<MainnetConsensusSpec>;
+    type WireProtocol = ethereum::EthereumWireProtocol<MainnetConsensusSpec>;
     type StateMachine = EthereumChain;
+}
+
+pub struct EthereumHoleskyBlueprint;
+
+impl GenericChainBlueprint for EthereumHoleskyBlueprint {
+    const CHAIN_UID: u16 = 17000;
+    type WireProtocol = outcalls::OutcallsWireProtocol;
+    type StateMachine = OutcallsChain;
 }
 
 fn build_chain<B: GenericChainBlueprint + 'static>() -> Arc<Mutex<dyn Chain + Send>> {
@@ -22,6 +31,7 @@ fn build_chain<B: GenericChainBlueprint + 'static>() -> Arc<Mutex<dyn Chain + Se
 pub fn build_chain_from_uid(uid: u16) -> Arc<Mutex<dyn Chain + Send>> {
     match uid {
         EthereumMainnetBlueprint::CHAIN_UID => build_chain::<EthereumMainnetBlueprint>(),
+        EthereumHoleskyBlueprint::CHAIN_UID => build_chain::<EthereumHoleskyBlueprint>(),
         _ => panic!("invalid chain uid received"),
     }
 }

@@ -1,10 +1,11 @@
-mod api;
 mod diff;
 
-use crate::chain::StateMachine;
+use crate::{
+    chain::StateMachine,
+    util::{ConsensusApi, ExecutionApi},
+};
 use alloy_primitives::B256;
 use anyhow::Result;
-use api::{ConsensusApi, ExecutionApi};
 use async_trait::async_trait;
 use diff::EthereumStateDiff;
 use ic_lightclient_ethereum::{
@@ -16,7 +17,7 @@ use ic_lightclient_ethereum::{
     },
     EthereumLightClientConsensus,
 };
-use ic_lightclient_wire::{Block, LightClientStatePayload, LightClientUpdatePayload};
+use ic_lightclient_wire::ethereum::{Block, LightClientStatePayload, LightClientUpdatePayload};
 use std::time::SystemTime;
 
 const MAX_REQUEST_LIGHT_CLIENT_UPDATES: u8 = 128;

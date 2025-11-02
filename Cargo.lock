@@ -2120,6 +2120,7 @@ version = "0.1.0"
 dependencies = [
  "ic-lightclient-ethereum",
  "ic-lightclient-oc-utils",
+ "ic-lightclient-wire",
  "serde",
  "serde_json",
  "tokio",

@@ -1,3 +1,3 @@
-mod circular_queue;
+mod api;
 
-pub use circular_queue::CircularQueue;
+pub use api::{ConsensusApi, ExecutionApi};
