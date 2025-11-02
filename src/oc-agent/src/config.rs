@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Context, Result};
-use ic_lightclient_types::config::IcpConfig;
+use ic_lightclient_oc_utils::IcpConfig;
 use serde::Deserialize;
 use std::{fs::read_to_string, sync::OnceLock};
 

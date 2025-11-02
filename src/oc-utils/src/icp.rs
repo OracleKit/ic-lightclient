@@ -1,7 +1,8 @@
 use anyhow::{anyhow, Context, Result};
-use ic_agent::{export::Principal, Agent};
-use ic_lightclient_types::config::IcpConfig;
+use candid::Principal;
+use ic_agent::Agent;
 use ic_utils::{call::SyncCall, Canister};
+use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
 static INNER: OnceLock<Inner> = OnceLock::new();
@@ -10,6 +11,12 @@ static INNER: OnceLock<Inner> = OnceLock::new();
 struct Inner {
     agent: Agent,
     canister_id: Principal,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct IcpConfig {
+    pub canister_id: Principal,
+    pub agent_url: String,
 }
 
 pub struct IcpAgent;

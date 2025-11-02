@@ -17,28 +17,29 @@ pub trait Chain {
 
 pub trait GenericChainBlueprint {
     const CHAIN_UID: u16;
-    type ConfigManager: ConfigManager + 'static;
+    type ConfigManager: ConfigManager<Config = <Self::Protocol as WireProtocol>::Config> + 'static;
     type Protocol: WireProtocol;
     type StateManager: StateManager<
-            Config = <Self::ConfigManager as ConfigManager>::Config,
+            Config = <Self::Protocol as WireProtocol>::Config,
             UpdatePayload = <Self::Protocol as WireProtocol>::UpdatePayload,
             StatePayload = <Self::Protocol as WireProtocol>::StatePayload,
         > + 'static;
 }
 
+type ExtractConfig<B> = <<B as GenericChainBlueprint>::Protocol as WireProtocol>::Config;
+
 pub struct GenericChain<Blueprint: GenericChainBlueprint> {
     state: Blueprint::StateManager,
-    config: Blueprint::ConfigManager,
+    config: ExtractConfig<Blueprint>,
     blueprint: PhantomData<Blueprint>,
 }
 
 impl<Blueprint: GenericChainBlueprint> GenericChain<Blueprint> {
     pub async fn new(config: String) -> Result<Self> {
-        let config_manager = Blueprint::ConfigManager::new(config).await?;
-        let config = config_manager.get_config().clone();
-        let state = Blueprint::StateManager::new(config);
+        let config = Blueprint::ConfigManager::process(config).await?;
+        let state = Blueprint::StateManager::new(config.clone());
 
-        Ok(Self { state, config: config_manager, blueprint: PhantomData })
+        Ok(Self { state, config, blueprint: PhantomData })
     }
 }
 
@@ -79,8 +80,7 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
     }
 
     fn get_config(&self) -> Result<Vec<u8>> {
-        let config = self.config.get_config();
-        let serialized = serde_json::to_vec(config)?;
+        let serialized = serde_json::to_vec(&self.config)?;
         Ok(serialized)
     }
 }

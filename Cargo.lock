@@ -2050,7 +2050,6 @@ dependencies = [
  "ic-cdk",
  "ic-cdk-timers",
  "ic-lightclient-ethereum",
- "ic-lightclient-types",
  "ic-lightclient-wire",
  "serde",
  "serde_json",
@@ -2070,7 +2069,6 @@ dependencies = [
  "ethereum_ssz_derive",
  "eyre",
  "getrandom 0.2.16",
- "ic-lightclient-types",
  "ic_bls12_381",
  "serde",
  "serde_json",
@@ -2095,7 +2093,6 @@ dependencies = [
  "ic-agent",
  "ic-lightclient-ethereum",
  "ic-lightclient-oc-utils",
- "ic-lightclient-types",
  "ic-lightclient-wire",
  "ic-utils",
  "reqwest",
@@ -2112,7 +2109,6 @@ dependencies = [
  "anyhow",
  "candid",
  "ic-agent",
- "ic-lightclient-types",
  "ic-utils",
  "ic_principal",
  "serde",
@@ -2124,22 +2120,10 @@ version = "0.1.0"
 dependencies = [
  "ic-lightclient-ethereum",
  "ic-lightclient-oc-utils",
- "ic-lightclient-types",
  "serde",
  "serde_json",
  "tokio",
  "toml",
-]
-
-[[package]]
-name = "ic-lightclient-types"
-version = "0.1.0"
-dependencies = [
- "alloy-primitives",
- "anyhow",
- "candid",
- "ic_principal",
- "serde",
 ]
 
 [[package]]
