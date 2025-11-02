@@ -63,7 +63,10 @@ impl<Blueprint: GenericChainBlueprint> Chain for GenericChain<Blueprint> {
         // TODO: Add check for conflicts
 
         let updates = updates.updates::<Blueprint::Protocol>(Blueprint::CHAIN_UID)?;
-        self.state.update_state(updates)?;
+        if updates.len() > 0 {
+            self.state.update_state(updates)?;
+        }
+        
         Ok(())
     }
 
