@@ -1,15 +1,15 @@
-use std::time::SystemTime;
+use crate::{chain::StateMachine, util::ExecutionApi};
 use anyhow::Result;
 use async_trait::async_trait;
 use ic_lightclient_wire::outcalls::{Block, Config};
-use crate::{chain::StateMachine, util::ExecutionApi};
+use std::time::SystemTime;
 
 const BLOCK_TIME_SEC: u64 = 12;
 
 #[derive(Default)]
 pub struct OutcallsChain {
     execution_apis: Vec<ExecutionApi>,
-    last_updated_time_sec: u64
+    last_updated_time_sec: u64,
 }
 
 #[async_trait]
@@ -23,10 +23,7 @@ impl StateMachine for OutcallsChain {
     }
 
     async fn init(&mut self, config: Config) -> Result<()> {
-        let execution_apis = config.execution_apis
-            .into_iter()
-            .map(|url| ExecutionApi::new(url))
-            .collect();
+        let execution_apis = config.execution_apis.into_iter().map(|url| ExecutionApi::new(url)).collect();
 
         self.execution_apis = execution_apis;
 
@@ -66,12 +63,7 @@ impl OutcallsChain {
         let max_priority_fee = self.execution_apis[0].max_priority_fee().await?;
         let max_priority_fee = max_priority_fee.try_into()?;
 
-        let block = Block {
-            block_num: latest_block_num,
-            block_hash,
-            base_gas_fee: base_fee,
-            max_priority_fee
-        };
+        let block = Block { block_num: latest_block_num, block_hash, base_gas_fee: base_fee, max_priority_fee };
 
         Ok(Some(block))
     }

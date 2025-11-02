@@ -2,8 +2,8 @@ mod blueprint;
 mod chain;
 mod config;
 mod ethereum;
-mod outcalls;
 mod metrics;
+mod outcalls;
 mod state;
 
 use crate::config::ConfigManager;

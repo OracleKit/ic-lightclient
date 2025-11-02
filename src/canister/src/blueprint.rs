@@ -1,6 +1,7 @@
 use crate::{
     chain::{Chain, GenericChainBlueprint, GenericChainFactory},
-    ethereum::{EthereumConfigManager, EthereumStateManager}, outcalls::{OutcallsConfigManager, OutcallsStateManager},
+    ethereum::{EthereumConfigManager, EthereumStateManager},
+    outcalls::{OutcallsConfigManager, OutcallsStateManager},
 };
 use anyhow::{anyhow, Result};
 use ic_lightclient_ethereum::helios::spec::MainnetConsensusSpec;

@@ -1,6 +1,7 @@
 use crate::{
     chain::{Chain, GenericChain, GenericChainBlueprint},
-    ethereum::EthereumChain, outcalls::OutcallsChain,
+    ethereum::EthereumChain,
+    outcalls::OutcallsChain,
 };
 use ic_lightclient_ethereum::helios::spec::MainnetConsensusSpec;
 use ic_lightclient_wire::{ethereum, outcalls};

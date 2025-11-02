@@ -1,10 +1,10 @@
+use crate::chain::StateManager;
 use anyhow::Result;
 use ic_lightclient_wire::outcalls::{Block, Config};
-use crate::chain::StateManager;
 
 pub struct OutcallsStateManager {
     _config: Config,
-    state: Block
+    state: Block,
 }
 
 impl StateManager for OutcallsStateManager {

@@ -1,6 +1,9 @@
 mod diff;
 
-use crate::{chain::StateMachine, util::{ConsensusApi, ExecutionApi}};
+use crate::{
+    chain::StateMachine,
+    util::{ConsensusApi, ExecutionApi},
+};
 use alloy_primitives::B256;
 use anyhow::Result;
 use async_trait::async_trait;

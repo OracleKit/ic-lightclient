@@ -1,6 +1,6 @@
+use crate::chain::ConfigManager;
 use anyhow::Result;
 use ic_lightclient_wire::outcalls::Config;
-use crate::chain::ConfigManager;
 
 pub struct OutcallsConfigManager;
 

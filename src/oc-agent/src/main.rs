@@ -3,8 +3,8 @@ mod chain;
 mod cli;
 mod config;
 mod ethereum;
-mod outcalls;
 mod http;
+mod outcalls;
 mod util;
 
 use crate::{blueprint::build_chain_from_uid, cli::Cli, config::Config};

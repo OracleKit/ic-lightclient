@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::WireProtocol;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Block {
@@ -11,7 +11,7 @@ pub struct Block {
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Config {
-    pub execution_apis: Vec<String>
+    pub execution_apis: Vec<String>,
 }
 
 pub struct OutcallsWireProtocol;
