@@ -7,7 +7,6 @@ edition = "2021"
 candid.workspace = true
 serde.workspace = true
 ic_principal.workspace = true
-ic-lightclient-types = { path = "../types" }
 ic-agent.workspace = true
 ic-utils.workspace = true
 anyhow.workspace = true

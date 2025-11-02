@@ -14,7 +14,6 @@ ic-cdk.workspace = true
 ic-cdk-timers.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-ic-lightclient-types = { path = "../types" }
 ic-lightclient-ethereum = { path = "../ethereum" }
 ic-lightclient-wire = { path = "../wire" }
 enum_dispatch.workspace = true

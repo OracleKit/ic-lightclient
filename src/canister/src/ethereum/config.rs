@@ -8,14 +8,12 @@ use ic_lightclient_ethereum::{
     config::{EthereumConfig, EthereumConfigPopulated},
 };
 
-pub struct EthereumConfigManager {
-    config: EthereumConfigPopulated,
-}
+pub struct EthereumConfigManager;
 
 impl ConfigManager for EthereumConfigManager {
     type Config = EthereumConfigPopulated;
 
-    async fn new(config: String) -> Result<Self> {
+    async fn process(config: String) -> Result<Self::Config> {
         let config: EthereumConfig = serde_json::from_str(&config)?;
         let url = config.checkpoint_sync_host.clone();
         let url = format!("{}/checkpointz/v1/beacon/slots", url);
@@ -38,10 +36,6 @@ impl ConfigManager for EthereumConfigManager {
         let checkpoint = parse_checkpointz_output_to_config(res.body)?;
         let populated_config = config.populate(checkpoint);
 
-        Ok(Self { config: populated_config })
-    }
-
-    fn get_config(&self) -> &EthereumConfigPopulated {
-        &self.config
+        Ok(populated_config)
     }
 }

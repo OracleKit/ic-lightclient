@@ -23,4 +23,3 @@ alloy-rpc-types-eth.workspace = true
 alloy-consensus.workspace = true
 bincode.workspace = true
 serde_json.workspace = true
-ic-lightclient-types = { path = "../types" }

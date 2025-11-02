@@ -17,6 +17,7 @@ pub trait GenericChainBlueprint {
     const CHAIN_UID: u16;
     type WireProtocol: WireProtocol;
     type StateMachine: StateMachine<
+        Config = <Self::WireProtocol as WireProtocol>::Config,
         CanisterStatePayload = <Self::WireProtocol as WireProtocol>::StatePayload,
         CanisterUpdatePayload = <Self::WireProtocol as WireProtocol>::UpdatePayload,
     >;

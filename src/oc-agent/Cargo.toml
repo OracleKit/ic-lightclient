@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 tokio.workspace = true
 ic-agent.workspace = true
-ic-lightclient-types = { path = "../types" }
 serde.workspace = true
 toml.workspace = true
 alloy-primitives.workspace = true
