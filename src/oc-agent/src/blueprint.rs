@@ -3,7 +3,7 @@ use crate::{
     ethereum::EthereumChain,
 };
 use ic_lightclient_ethereum::helios::spec::MainnetConsensusSpec;
-use ic_lightclient_wire::EthereumWireProtocol;
+use ic_lightclient_wire::ethereum;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -11,7 +11,7 @@ pub struct EthereumMainnetBlueprint;
 
 impl GenericChainBlueprint for EthereumMainnetBlueprint {
     const CHAIN_UID: u16 = 1;
-    type WireProtocol = EthereumWireProtocol<MainnetConsensusSpec>;
+    type WireProtocol = ethereum::EthereumWireProtocol<MainnetConsensusSpec>;
     type StateMachine = EthereumChain;
 }
 

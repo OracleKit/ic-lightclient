@@ -3,7 +3,7 @@ use anyhow::Result;
 use ic_lightclient_ethereum::{
     config::EthereumConfigPopulated, helios::spec::ConsensusSpec, EthereumLightClientConsensus,
 };
-use ic_lightclient_wire::{Block, LightClientStatePayload, LightClientUpdatePayload};
+use ic_lightclient_wire::ethereum::{Block, LightClientStatePayload, LightClientUpdatePayload};
 use serde::{de::DeserializeOwned, Serialize};
 
 pub struct EthereumStateManager<S: ConsensusSpec> {

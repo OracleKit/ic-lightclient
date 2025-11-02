@@ -16,7 +16,7 @@ use ic_lightclient_ethereum::{
     },
     EthereumLightClientConsensus,
 };
-use ic_lightclient_wire::{Block, LightClientStatePayload, LightClientUpdatePayload};
+use ic_lightclient_wire::ethereum::{Block, LightClientStatePayload, LightClientUpdatePayload};
 use std::time::SystemTime;
 
 const MAX_REQUEST_LIGHT_CLIENT_UPDATES: u8 = 128;
