@@ -8,6 +8,9 @@ import { HttpAgent } from '@dfinity/agent';
 
 let agent: HttpAgent;
 
+const EthereumMainnetChainId = 1;
+const EthereumHoleskyChainId = 17000;
+
 describe('test e2e', () => {
     beforeAll(async () => {
         let host = await setupDfx();
@@ -19,22 +22,43 @@ describe('test e2e', () => {
     test('block hash getting updated', async () => {
         let canisterId = await setupCanister();
         let actor = createActor(canisterId, { agent });
-        let block_hash = await actor.get_latest_block_hash();
-        let base_gas_fee = await actor.get_base_gas_fee();
-        let max_priority_fee = await actor.get_max_priority_fee();
+        let mainnet = {
+            block_hash: await actor.get_latest_block_hash(EthereumMainnetChainId),
+            base_gas_fee: await actor.get_base_gas_fee(EthereumMainnetChainId),
+            max_priority_fee: await actor.get_max_priority_fee(EthereumMainnetChainId)
+        };
+
+        let holesky = {
+            block_hash: await actor.get_latest_block_hash(EthereumHoleskyChainId),
+            base_gas_fee: await actor.get_base_gas_fee(EthereumHoleskyChainId),
+            max_priority_fee: await actor.get_max_priority_fee(EthereumHoleskyChainId)
+        };
 
         await setupOcAgent();
         await new Promise(resolve => setTimeout(resolve, 30*1000));
 
         expect(await checkOcAgentHealthy()).toBe(true);
-        let new_block_hash = await actor.get_latest_block_hash();
-        let new_base_gas_fee = await actor.get_base_gas_fee();
-        let new_max_priority_fee = await actor.get_max_priority_fee();
+        
+        let mainnet_new = {
+            block_hash: await actor.get_latest_block_hash(EthereumMainnetChainId),
+            base_gas_fee: await actor.get_base_gas_fee(EthereumMainnetChainId),
+            max_priority_fee: await actor.get_max_priority_fee(EthereumMainnetChainId)
+        };
 
-        expect(typeof block_hash).toBe('string');
-        expect(block_hash !== new_block_hash).toBe(true);
-        expect(base_gas_fee !== new_base_gas_fee).toBe(true);
-        expect(max_priority_fee !== new_max_priority_fee).toBe(true);
+        let holesky_new = {
+            block_hash: await actor.get_latest_block_hash(EthereumHoleskyChainId),
+            base_gas_fee: await actor.get_base_gas_fee(EthereumHoleskyChainId),
+            max_priority_fee: await actor.get_max_priority_fee(EthereumHoleskyChainId)
+        };
+
+        expect(typeof mainnet.block_hash).toBe('string');
+        expect(mainnet.block_hash !== mainnet_new.block_hash).toBe(true);
+        expect(mainnet.base_gas_fee !== mainnet_new.base_gas_fee).toBe(true);
+        expect(mainnet.max_priority_fee !== mainnet_new.max_priority_fee).toBe(true);
+
+        expect(holesky.block_hash !== holesky_new.block_hash).toBe(true);
+        expect(holesky.base_gas_fee !== holesky_new.base_gas_fee).toBe(true);
+        expect(holesky.max_priority_fee !== holesky_new.max_priority_fee).toBe(true);
         
     }, 120*1000);
     

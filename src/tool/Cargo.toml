@@ -10,3 +10,4 @@ toml.workspace = true
 tokio.workspace = true
 ic-lightclient-ethereum = { path = "../ethereum" }
 ic-lightclient-oc-utils = { path = "../oc-utils" }
+ic-lightclient-wire = { path = "../wire" }

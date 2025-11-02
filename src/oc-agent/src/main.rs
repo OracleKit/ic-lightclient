@@ -3,6 +3,7 @@ mod chain;
 mod cli;
 mod config;
 mod ethereum;
+mod outcalls;
 mod http;
 mod util;
 
