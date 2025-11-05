@@ -5,7 +5,8 @@ members = [
     "src/ethereum",
     "src/oc-utils",
     "src/tool",
-    "src/wire"
+    "src/wire",
+    "src/utils"
 ]
 resolver = "2"
 
