@@ -17,7 +17,7 @@ use ic_lightclient_ethereum::{
     },
     EthereumLightClientConsensus,
 };
-use ic_lightclient_wire::ethereum::{Block, LightClientStatePayload, LightClientUpdatePayload};
+use ic_lightclient_wire::ethereum::lightclient::{Block, LightClientStatePayload, LightClientUpdatePayload};
 use std::time::SystemTime;
 
 const MAX_REQUEST_LIGHT_CLIENT_UPDATES: u8 = 128;
@@ -85,12 +85,21 @@ impl StateMachine for EthereumChain {
 
 impl EthereumChain {
     async fn get_latest_block_update(&self) -> Result<LightClientUpdatePayload<MainnetConsensusSpec>> {
+        let latest_block_num = self.execution_api.latest_block_number().await?;
+        let block_hash = self.execution_api.block_header_by_number(latest_block_num).await?;
+        let block_hash = block_hash.hash.to_string();
+        let latest_block_num = latest_block_num.try_into()?;
         let base_gas_fee = self.execution_api.base_gas_fee().await?;
         let base_gas_fee = base_gas_fee.try_into()?;
         let max_priority_fee = self.execution_api.max_priority_fee().await?;
         let max_priority_fee = max_priority_fee.try_into()?;
 
-        Ok(LightClientUpdatePayload::Block(Block { base_gas_fee, max_priority_fee }))
+        Ok(LightClientUpdatePayload::Block(Block {
+            block_num: latest_block_num,
+            block_hash,
+            base_gas_fee,
+            max_priority_fee,
+        }))
     }
 
     async fn check_and_sync(&mut self) -> Result<()> {

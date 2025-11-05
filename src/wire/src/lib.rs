@@ -1,5 +1,4 @@
 pub mod ethereum;
-pub mod outcalls;
 mod protocol;
 mod state;
 mod update;

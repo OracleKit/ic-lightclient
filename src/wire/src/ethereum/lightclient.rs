@@ -7,11 +7,7 @@ use ic_lightclient_ethereum::{
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::marker::PhantomData;
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-pub struct Block {
-    pub base_gas_fee: u128,
-    pub max_priority_fee: u128,
-}
+pub use crate::ethereum::common::Block;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum LightClientUpdatePayload<S: ConsensusSpec> {

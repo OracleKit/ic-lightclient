@@ -1,7 +1,7 @@
 use crate::{chain::StateMachine, util::ExecutionApi};
 use anyhow::Result;
 use async_trait::async_trait;
-use ic_lightclient_wire::outcalls::{Block, Config};
+use ic_lightclient_wire::ethereum::outcalls::{Block, Config};
 use std::time::SystemTime;
 
 const BLOCK_TIME_SEC: u64 = 12;

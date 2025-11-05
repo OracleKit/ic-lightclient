@@ -1,6 +1,6 @@
 use crate::chain::StateManager;
 use anyhow::Result;
-use ic_lightclient_wire::outcalls::{Block, Config};
+use ic_lightclient_wire::ethereum::outcalls::{Block, Config};
 
 pub struct OutcallsStateManager {
     _config: Config,

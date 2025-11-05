@@ -1,6 +1,6 @@
 use ic_lightclient_ethereum::config::EthereumConfig;
 use ic_lightclient_oc_utils::{IcpAgent, IcpConfig};
-use ic_lightclient_wire::outcalls;
+use ic_lightclient_wire::ethereum::outcalls;
 use serde::{Deserialize, Serialize};
 use std::fs::read_to_string;
 
