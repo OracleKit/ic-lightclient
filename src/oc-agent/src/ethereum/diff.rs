@@ -6,7 +6,7 @@ use ic_lightclient_ethereum::{
     },
     EthereumLightClientConsensus,
 };
-use ic_lightclient_wire::ethereum::{LightClientStatePayload, LightClientUpdatePayload};
+use ic_lightclient_wire::ethereum::lightclient::{LightClientStatePayload, LightClientUpdatePayload};
 
 pub struct EthereumStateDiff<S: ConsensusSpec> {
     bootstrap: Option<Bootstrap<S>>,

@@ -5,7 +5,7 @@ use crate::{
 };
 use anyhow::{anyhow, Result};
 use ic_lightclient_ethereum::helios::spec::MainnetConsensusSpec;
-use ic_lightclient_wire::{ethereum, outcalls};
+use ic_lightclient_wire::ethereum::{lightclient, outcalls};
 
 struct EthereumMainnetBlueprint;
 
@@ -13,7 +13,7 @@ impl GenericChainBlueprint for EthereumMainnetBlueprint {
     const CHAIN_UID: u16 = 1;
     type ConfigManager = EthereumConfigManager;
     type StateManager = EthereumStateManager<MainnetConsensusSpec>;
-    type Protocol = ethereum::EthereumWireProtocol<MainnetConsensusSpec>;
+    type Protocol = lightclient::EthereumWireProtocol<MainnetConsensusSpec>;
 }
 
 struct EthereumHoleskyBlueprint;
