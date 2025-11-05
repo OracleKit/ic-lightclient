@@ -2128,6 +2128,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "ic-lightclient-utils"
+version = "0.1.0"
+
+[[package]]
 name = "ic-lightclient-wire"
 version = "0.1.0"
 dependencies = [
