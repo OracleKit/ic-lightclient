@@ -47,6 +47,40 @@ impl<T> CircularQueue<T> {
         }
         Some(&self.buf[self.next])
     }
+
+    pub fn at_index(&self, i: usize) -> Option<&T> {
+        let size = self.size();
+        if i >= size {
+            return None;
+        }
+
+        let real_i = (self.next + i) % size;
+        Some(&self.buf[real_i])
+    }
+
+    pub fn clear(&mut self) {
+        self.buf.clear();
+    }
+
+    pub fn iter(&self) -> CircularQueueIter<'_, T> {
+        CircularQueueIter { store: &self, i: 0 }
+    }
+}
+
+pub struct CircularQueueIter<'a, T> {
+    store: &'a CircularQueue<T>,
+    i: usize,
+}
+
+impl<'a, T> Iterator for CircularQueueIter<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let el = self.store.at_index(self.i);
+        self.i += 1;
+
+        el
+    }
 }
 
 #[cfg(test)]
@@ -80,5 +114,11 @@ mod tests {
         assert_eq!(queue.size(), 2);
         assert_eq!(queue.head(), Some(&300));
         assert_eq!(queue.tail(), Some(&400));
+
+        queue.clear();
+        assert_eq!(queue.capacity(), 2);
+        assert_eq!(queue.size(), 0);
+        assert_eq!(queue.head(), None);
+        assert_eq!(queue.tail(), None);
     }
 }

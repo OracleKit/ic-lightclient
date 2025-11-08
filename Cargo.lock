@@ -2093,6 +2093,7 @@ dependencies = [
  "ic-agent",
  "ic-lightclient-ethereum",
  "ic-lightclient-oc-utils",
+ "ic-lightclient-utils",
  "ic-lightclient-wire",
  "ic-utils",
  "reqwest",

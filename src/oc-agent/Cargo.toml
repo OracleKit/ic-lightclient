@@ -15,6 +15,7 @@ alloy-rpc-types-eth.workspace = true
 ic-lightclient-ethereum = { path = "../ethereum" }
 ic-lightclient-wire = { path = "../wire" }
 ic-lightclient-oc-utils = { path = "../oc-utils" }
+ic-lightclient-utils = { path = "../utils" }
 serde_json.workspace = true
 anyhow.workspace = true
 clap.workspace = true
