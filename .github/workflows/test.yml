@@ -49,6 +49,7 @@ jobs:
 
       - name: run unit tests
         run: |
+          export RUSTFLAGS="-Awarnings"
           npm run test:unit
 
       - name: run e2e tests
